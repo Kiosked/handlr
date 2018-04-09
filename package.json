@@ -1,0 +1,33 @@
+{
+  "name": "handlr",
+  "version": "0.0.0",
+  "description": "Job queue and handler for NodeJS",
+  "main": "source/index.js",
+  "dependencies": {
+    "eventemitter3": "^3.0.1",
+    "ioredis": "^3.2.2",
+    "ms": "^2.1.1",
+    "uuid": "^3.2.1",
+    "verror": "^1.10.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kiosked/handlr.git"
+  },
+  "keywords": [
+    "job",
+    "queue",
+    "handler",
+    "task"
+  ],
+  "author": "Perry Mitchell <perry.mitchell@kiosked.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Kiosked/handlr/issues"
+  },
+  "homepage": "https://github.com/Kiosked/handlr#readme"
+}
