@@ -7,7 +7,8 @@ const { MESSAGE_PREFIX } = require("../symbols.js");
 const MESSAGE_TTL = 5000;
 
 const __callbacks = {};
-let __channelListener;
+let __channelListener,
+    __processListener;
 
 function attachChannelListener() {
     if (__channelListener) {
@@ -19,6 +20,18 @@ function attachChannelListener() {
         }
     };
     getSharedMessageChannel().on("response", __channelListener);
+}
+
+function attachProcessListener() {
+    if (__processListener) {
+        return;
+    }
+    __processListener = resp => {
+        if (resp && resp.id && __callbacks[resp.id]) {
+            __callbacks[resp.id](resp);
+        }
+    };
+    process.on("message", __processListener);
 }
 
 function sendMessage(msg) {
@@ -42,6 +55,7 @@ function sendMessage(msg) {
                     resolve(response);
                 };
                 if (cluster.isWorker) {
+                    attachProcessListener();
                     process.send(payload);
                 } else {
                     attachChannelListener();

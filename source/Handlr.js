@@ -42,7 +42,12 @@ class Handlr extends EventEmitter {
         this._jobs = [];
         this._tick = null;
         this._options = Object.freeze(sanitiseOptions(options));
+        this._handlers = [];
         handleJobMessages.call(this);
+    }
+
+    get handlers() {
+        return this._handlers;
     }
 
     get jobs() {

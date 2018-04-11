@@ -1,15 +1,21 @@
 const EventEmitter = require("eventemitter3");
 const VError = require("verror");
-const uuid = require("uuid/v4");
 const { PROCESSOR_STATUS_ACTIVE, PROCESSOR_STATUS_IDLE } = require("./symbols.js");
 
 class JobProcessor extends EventEmitter {
-    constructor() {
+    constructor(id, jobType) {
         super();
         this._status = PROCESSOR_STATUS_IDLE;
         this._dispatcher = null;
-        this._job = null;
-        this._id = uuid();
+        this.job = null;
+        this._jobType = jobType;
+        this._id = id;
+        if (!id) {
+            throw new VError("Failed constructing JobProcessor: Invalid or no ID provided");
+        }
+        if (!jobType) {
+            throw new VError("Failed constructing JobProcessor: Invalid or no job type provided");
+        }
     }
 
     get dispatcher() {
@@ -18,6 +24,10 @@ class JobProcessor extends EventEmitter {
 
     get id() {
         return this._id;
+    }
+
+    get jobType() {
+        return this._jobType;
     }
 
     set dispatcher(newDispatcher) {

@@ -1,5 +1,6 @@
 const cluster = require("cluster");
 const { getSharedInstance: getSharedMessageChannel } = require("./MessageChannel.js");
+const JobProcessor = require("./JobProcessor.js");
 const { MESSAGE_PREFIX } = require("./symbols.js");
 
 const __attachedWorkerListeners = {};
@@ -22,7 +23,10 @@ function handleJobMessages() {
         handleMessage.call(
             this,
             {
-                send: reply => getSharedMessageChannel().emit("response", reply)
+                // "send" for replies:
+                send: reply => getSharedMessageChannel().emit("response", reply),
+                // "notification" for new messages to the client
+                sendNotification: msg => getSharedMessageChannel().emit("notification", msg)
             },
             message
         );
@@ -45,14 +49,26 @@ function handleMessage(sender, message) {
         return;
     }
     const type = msgType.substr(MESSAGE_PREFIX.length);
+    const sendToClient = sender.sendNotification || sender.send;
     switch (type) {
-
+        case "register": {
+            const { handlerID, jobType } = message;
+            const processor = new JobProcessor(handlerID, jobType);
+            processor.dispatcher = jobData => {
+                sendToClient({
+                    type: "job",
+                });
+            };
+            this.handlers.push(processor);
+            break;
+        }
         default:
-            sender.send({
+            sendToClient({
                 type: "error",
                 id,
                 error: `Unknown event type: ${type}`
             });
+            break;
     }
 }
 
