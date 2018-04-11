@@ -1,4 +1,7 @@
 module.exports = Object.freeze({
+    COMM_TYPE_CLUSTER: "comm:cluster",
+    COMM_TYPE_LOCAL: "comm:local",
+
     JOB_PRIORITY_CRITICAL: -2,
     JOB_PRIORITY_HIGH: -1,
     JOB_PRIORITY_LOW: 1,
@@ -9,6 +12,7 @@ module.exports = Object.freeze({
     JOB_STATUS_FAILED: "job:status:failed",
     JOB_STATUS_IDLE: "job:status:idle",
     JOB_STATUS_RUNNING: "job:status:running",
+    JOB_STATUS_STARTING: "job:status:starting",
 
     JOB_TICKER_DELAY: 1000,
 

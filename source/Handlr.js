@@ -1,6 +1,7 @@
+const VError = require("verror");
 const EventEmitter = require("eventemitter3");
 const NewJob = require("./NewJob.js");
-const { handleJobMessages, removeAllListeners } = require("./comms.js");
+const { addGlobalListeners, removeGlobalListeners } = require("./listening.js");
 const {
     JOB_STATUS_CANCELLED,
     JOB_STATUS_COMPLETED,
@@ -43,7 +44,8 @@ class Handlr extends EventEmitter {
         this._tick = null;
         this._options = Object.freeze(sanitiseOptions(options));
         this._handlers = [];
-        handleJobMessages.call(this);
+        this.__handleJobUpdate = this._handleJobUpdate.bind(this);
+        addGlobalListeners(this);
     }
 
     get handlers() {
@@ -83,12 +85,34 @@ class Handlr extends EventEmitter {
     }
 
     shutdown() {
-        removeAllListeners.call(this);
+        removeGlobalListeners(this);
+        this.handlers.forEach(handler => {
+            handler.removeListener("jobUpdate", this.__handleJobUpdate);
+        });
+        this._handlers = [];
     }
 
     _addJob(jobData) {
         this.jobs.push(jobData);
         this._sortJobs();
+    }
+
+    _addHandler(handler) {
+        handler.on("jobUpdate", this.__handleJobUpdate);
+        this.handlers.push(handler);
+    }
+
+    _handleJobUpdate() {
+
+    }
+
+    _removeHandler(workerID) {
+        const handler = this.handlers.find(inst => inst.id === workerID);
+        if (!handler) {
+            throw new VError(`Failed removing handler: No handler found for ID: ${workerID}`);
+        }
+        handler.shutdown();
+        this.handlers.splice(this.handlers.indexOf(handler), 1);
     }
 
     _sortJobs() {

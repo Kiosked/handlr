@@ -4,7 +4,7 @@ let __sharedChannel;
 
 class MessageChannel extends EventEmitter {}
 
-MessageChannel.getSharedInstance = function getSharedInstance() {
+MessageChannel.getSharedChannel = function getSharedChannel() {
     if (!__sharedChannel) {
         __sharedChannel = new MessageChannel();
     }

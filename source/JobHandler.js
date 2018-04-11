@@ -1,20 +1,29 @@
 const EventEmitter = require("eventemitter3");
 const VError = require("verror");
-const { PROCESSOR_STATUS_ACTIVE, PROCESSOR_STATUS_IDLE } = require("./symbols.js");
+const {
+    COMM_TYPE_CLUSTER,
+    COMM_TYPE_LOCAL,
+    PROCESSOR_STATUS_ACTIVE,
+    PROCESSOR_STATUS_IDLE
+} = require("./symbols.js");
 
-class JobProcessor extends EventEmitter {
-    constructor(id, jobType) {
+class JobHandler extends EventEmitter {
+    constructor(id, jobType, commType) {
         super();
         this._status = PROCESSOR_STATUS_IDLE;
         this._dispatcher = null;
         this.job = null;
         this._jobType = jobType;
+        this._commType = commType;
         this._id = id;
         if (!id) {
-            throw new VError("Failed constructing JobProcessor: Invalid or no ID provided");
+            throw new VError("Failed constructing JobHandler: Invalid or no ID provided");
         }
         if (!jobType) {
-            throw new VError("Failed constructing JobProcessor: Invalid or no job type provided");
+            throw new VError("Failed constructing JobHandler: Invalid or no job type provided");
+        }
+        if ([COMM_TYPE_CLUSTER, COMM_TYPE_LOCAL].indexOf(commType) === -1) {
+            throw new VError("Failed constructing JobHandler: Invalid or no comm type provided");
         }
     }
 
@@ -40,6 +49,10 @@ class JobProcessor extends EventEmitter {
     receiveJobUpdate() {
 
     }
+
+    shutdown() {
+
+    }
 }
 
-module.exports = JobProcessor;
+module.exports = JobHandler;
