@@ -21,6 +21,8 @@ function addGlobalListeners(handlr) {
                 const { workerID } = message;
                 assert(workerID.length > 0, "Worker ID must be provided");
                 handlr._removeHandler(workerID);
+            } else if (message.type === "accept") {
+
             }
         }
     };

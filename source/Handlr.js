@@ -8,7 +8,9 @@ const {
     JOB_STATUS_FAILED,
     JOB_STATUS_IDLE,
     JOB_STATUS_RUNNING,
-    JOB_TICKER_DELAY
+    JOB_STATUS_STARTING,
+    JOB_TICKER_DELAY,
+    PROCESSOR_STATUS_IDLE
 } = require("./symbols.js");
 
 const BASE_OPTIONS = {
@@ -92,8 +94,8 @@ class Handlr extends EventEmitter {
         this._handlers = [];
     }
 
-    _addJob(jobData) {
-        this.jobs.push(jobData);
+    _addJob(job) {
+        this.jobs.push(job);
         this._sortJobs();
     }
 
@@ -126,6 +128,26 @@ class Handlr extends EventEmitter {
             }
             return 0;
         });
+    }
+
+    _startJob(job) {
+        const { status, type } = job;
+        if (status !== JOB_STATUS_IDLE) {
+            throw new VError(`Failed starting job: Job not in IDLE state: ${status}`);
+        }
+        // find a worker that is idle
+        const handler = this.handlers.find(handler =>
+            handler.jobType === type &&
+            handler.status === PROCESSOR_STATUS_IDLE
+        );
+        if (!handler) {
+            // no handler available
+            return false;
+        }
+        job.status = JOB_STATUS_STARTING;
+        job.worker = handler.id;
+        handler.startJob(job);
+        return true;
     }
 }
 

@@ -38,7 +38,8 @@ class NewJob {
             progressMax: 1,
             attempts: this.attempts,
             attemptsDelay: this.attemptsDelay,
-            lastAttempt: null
+            lastAttempt: null,
+            worker: null
         });
     }
 

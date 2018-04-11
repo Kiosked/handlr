@@ -39,6 +39,10 @@ class JobHandler extends EventEmitter {
         return this._jobType;
     }
 
+    get status() {
+        return this._status;
+    }
+
     set dispatcher(newDispatcher) {
         if (typeof newDispatcher !== "function") {
             throw new VError("Failed setting dispatcher: Expected dispatcher to be a function");
@@ -51,6 +55,10 @@ class JobHandler extends EventEmitter {
     }
 
     shutdown() {
+
+    }
+
+    startJob(job) {
 
     }
 }
