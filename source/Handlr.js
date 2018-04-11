@@ -1,5 +1,6 @@
 const EventEmitter = require("eventemitter3");
 const NewJob = require("./NewJob.js");
+const { handleJobRequests, removeAllListeners } = require("./comms.js");
 const {
     JOB_STATUS_CANCELLED,
     JOB_STATUS_COMPLETED,
@@ -8,6 +9,10 @@ const {
     JOB_STATUS_RUNNING,
     JOB_TICKER_DELAY
 } = require("./symbols.js");
+
+const BASE_OPTIONS = {
+    serverIndex: 0
+};
 
 function attemptsDelayAllowsExecution(method) {
     try {
@@ -24,20 +29,31 @@ function attemptsDelayTimestampAllowsExecution(lastAttemptTs, delay) {
     return (lastAttemptTs + delay) <= Date.now();
 }
 
+function sanitiseOptions(ops) {
+    if (typeof ops !== "object" || ops === null) {
+        return Object.assign({}, BASE_OPTIONS);
+    }
+    return Object.assign({}, BASE_OPTIONS, ops);
+}
+
 class Handlr extends EventEmitter {
-    constructor() {
+    constructor(options) {
         super();
         this._jobs = [];
-        this._handlers = {};
         this._tick = null;
+        this._options = Object.freeze(sanitiseOptions(options));
+        handleJobRequests.call(this);
     }
 
     get jobs() {
         return this._jobs;
     }
 
-    create(jobType, data) {
-        this._startTick();
+    get options() {
+        return this._options;
+    }
+
+    createJob(jobType, data) {
         return new NewJob(this, jobType, data);
     }
 
@@ -61,6 +77,10 @@ class Handlr extends EventEmitter {
         return nextJob || null;
     }
 
+    shutdown() {
+        removeAllListeners.call(this);
+    }
+
     _addJob(jobData) {
         this.jobs.push(jobData);
         this._sortJobs();
@@ -77,17 +97,6 @@ class Handlr extends EventEmitter {
             }
             return 0;
         });
-    }
-
-    _startTick() {
-        if (this._tick !== null) {
-            return;
-        }
-        this._tick = setTimeout(() => this._tick, JOB_TICKER_DELAY);
-    }
-
-    _tick() {
-
     }
 }
 
