@@ -10,5 +10,10 @@ module.exports = Object.freeze({
     JOB_STATUS_IDLE: "job:status:idle",
     JOB_STATUS_RUNNING: "job:status:running",
 
-    JOB_TICKER_DELAY: 1000
+    JOB_TICKER_DELAY: 1000,
+
+    MESSAGE_PREFIX: "handlr:clustermsg:",
+
+    PROCESSOR_STATUS_ACTIVE: "processor:status:active",
+    PROCESSOR_STATUS_IDLE: "processor:status:idle"
 });
