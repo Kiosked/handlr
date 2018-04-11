@@ -1,6 +1,6 @@
 const EventEmitter = require("eventemitter3");
 const NewJob = require("./NewJob.js");
-const { handleJobRequests, removeAllListeners } = require("./comms.js");
+const { handleJobMessages, removeAllListeners } = require("./comms.js");
 const {
     JOB_STATUS_CANCELLED,
     JOB_STATUS_COMPLETED,
@@ -42,7 +42,7 @@ class Handlr extends EventEmitter {
         this._jobs = [];
         this._tick = null;
         this._options = Object.freeze(sanitiseOptions(options));
-        handleJobRequests.call(this);
+        handleJobMessages.call(this);
     }
 
     get jobs() {

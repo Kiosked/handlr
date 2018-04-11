@@ -12,7 +12,7 @@ function attachWorkerListener(worker, callback) {
     worker.on("message", listener);
 }
 
-function handleJobRequests() {
+function handleJobMessages() {
     const onWorkerMessage = handleWorkerMessage.bind(this);
     const onNewWorkerListener = worker => {
         attachWorkerListener.call(this, worker, onWorkerMessage);
@@ -65,6 +65,6 @@ function removeAllListeners() {
 
 module.exports = {
     MESSAGE_PREFIX,
-    handleJobRequests,
+    handleJobMessages,
     removeAllListeners
 };
