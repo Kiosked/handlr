@@ -10,11 +10,18 @@ const {
 } = require("./symbols.js");
 
 function attemptsDelayAllowsExecution(method) {
-
+    try {
+        return !!method();
+    } catch (err) {
+        return false;
+    }
 }
 
 function attemptsDelayTimestampAllowsExecution(lastAttemptTs, delay) {
-
+    if (!lastAttemptTs) {
+        return true;
+    }
+    return (lastAttemptTs + delay) <= Date.now();
 }
 
 class Handlr extends EventEmitter {
