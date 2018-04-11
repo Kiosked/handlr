@@ -8,5 +8,7 @@ module.exports = Object.freeze({
     JOB_STATUS_COMPLETED: "job:status:completed",
     JOB_STATUS_FAILED: "job:status:failed",
     JOB_STATUS_IDLE: "job:status:idle",
-    JOB_STATUS_RUNNING: "job:status:running"
+    JOB_STATUS_RUNNING: "job:status:running",
+
+    JOB_TICKER_DELAY: 1000
 });
