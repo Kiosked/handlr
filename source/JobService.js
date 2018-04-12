@@ -39,7 +39,7 @@ function sanitiseOptions(ops) {
     return Object.assign({}, BASE_OPTIONS, ops);
 }
 
-class Handlr extends EventEmitter {
+class JobService extends EventEmitter {
     constructor(options) {
         super();
         this._jobs = [];
@@ -94,6 +94,10 @@ class Handlr extends EventEmitter {
         this._handlers = [];
     }
 
+    _acceptJob(workerID, jobID) {
+
+    }
+
     _addJob(job) {
         this.jobs.push(job);
         this._sortJobs();
@@ -144,6 +148,7 @@ class Handlr extends EventEmitter {
             // no handler available
             return false;
         }
+        // start job
         job.status = JOB_STATUS_STARTING;
         job.worker = handler.id;
         handler.startJob(job);
@@ -151,4 +156,4 @@ class Handlr extends EventEmitter {
     }
 }
 
-module.exports = Handlr;
+module.exports = JobService;

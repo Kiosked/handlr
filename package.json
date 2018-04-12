@@ -5,6 +5,7 @@
   "main": "source/index.js",
   "dependencies": {
     "eventemitter3": "^3.0.1",
+    "is-error": "^2.2.1",
     "ms": "^2.1.1",
     "uuid": "^3.2.1",
     "verror": "^1.10.0"

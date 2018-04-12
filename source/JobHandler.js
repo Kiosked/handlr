@@ -27,6 +27,10 @@ class JobHandler extends EventEmitter {
         }
     }
 
+    get commType() {
+        return this._commType;
+    }
+
     get dispatcher() {
         return this._dispatcher;
     }
@@ -59,7 +63,13 @@ class JobHandler extends EventEmitter {
     }
 
     startJob(job) {
-
+        if (this.status !== PROCESSOR_STATUS_IDLE) {
+            throw new VError("Failed starting job on worker: Not in idle state");
+        }
+        this._status = PROCESSOR_STATUS_ACTIVE;
+        setTimeout(() => {
+            this.dispatcher(job.data, this.id, this.commType);
+        }, 0);
     }
 }
 

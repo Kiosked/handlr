@@ -18,8 +18,8 @@ const Priority = {
 };
 
 class NewJob {
-    constructor(handlr, type, data) {
-        this._handlr = handlr;
+    constructor(service, type, data) {
+        this._service = service;
         this.type = type;
         this.priority = JOB_PRIORITY_NORMAL;
         this.data = data;
@@ -60,7 +60,7 @@ class NewJob {
 
     commit() {
         const data = this.data;
-        return this._handlr
+        return this._service
             ._addJob(data)
             .then(() => data.id);
     }

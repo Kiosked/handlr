@@ -1,21 +1,35 @@
 const cluster = require("cluster");
 const EventEmitter = require("eventemitter3");
-const { getSharedChannel } = require("./MessageChannel.js");
+const isError = require("is-error");
+const { getSharedChannel } = require("../MessageChannel.js");
 
 class Proxy extends EventEmitter {
-    constructor(workerID) {
+    constructor(workerID, serverIndex) {
         super();
         this._workerID = workerID;
-        this.__handleMessage = this._handleMessage.bind(this);
+        this._serverIndex = serverIndex;
+        this.__handleNewJob = this._handleNewJob.bind(this);
         if (cluster.isWorker) {
             // todo
         } else {
-            getSharedChannel().on("job", this.__handleMessage);
+            getSharedChannel().on("job", this.__handleNewJob);
         }
+    }
+
+    get serverIndex() {
+        return this._serverIndex;
     }
 
     get workerID() {
         return this._workerID;
+    }
+
+    failJob(err) {
+
+    }
+
+    resolveJob(results) {
+
     }
 
     shutdown() {
@@ -30,6 +44,7 @@ class Proxy extends EventEmitter {
     _acceptJob(job) {
         getSharedChannel().emit("message", {
             type: "accept",
+            serverIndex: this.serverIndex,
             workerID: this.workerID,
             jobID: job.id
         });
@@ -41,6 +56,7 @@ class Proxy extends EventEmitter {
         } else {
             getSharedChannel().emit("message", {
                 type: "deregister",
+                serverIndex: this.serverIndex,
                 workerID: this.workerID
             });
         }
@@ -61,6 +77,7 @@ class Proxy extends EventEmitter {
             getSharedChannel().emit("message", {
                 type: "register",
                 jobType,
+                serverIndex: this.serverIndex,
                 workerID: this.workerID
             });
         }
