@@ -12,6 +12,7 @@ const {
     JOB_TICKER_DELAY,
     PROCESSOR_STATUS_IDLE
 } = require("./symbols.js");
+const log = require("./log.js");
 
 const BASE_OPTIONS = {
     serverIndex: 0
@@ -102,6 +103,7 @@ class JobService extends EventEmitter {
     }
 
     _addJob(job) {
+        log.service.info(`Adding new job: ${job.type}`);
         this.jobs.push(job);
         this._sortJobs();
     }
@@ -119,6 +121,7 @@ class JobService extends EventEmitter {
         if (this._tick !== null) {
             return;
         }
+        log.service.info("Starting job service");
         const startTicker = () => {
             this._tick = setTimeout(() => {
                 if (this._tick === null) {
@@ -157,10 +160,11 @@ class JobService extends EventEmitter {
     }
 
     _startJob(job) {
-        const { status, type } = job;
+        const { status, type, id } = job;
         if (status !== JOB_STATUS_IDLE) {
             throw new VError(`Failed starting job: Job not in IDLE state: ${status}`);
         }
+        log.service.info(`Searching for handlers for job: ${job.type} (${id})`);
         // find a worker that is idle
         const handler = this.handlers.find(handler =>
             handler.jobType === type &&
@@ -171,6 +175,7 @@ class JobService extends EventEmitter {
             return false;
         }
         // start job
+        log.service.info(`Starting job: ${job.type} (${id})`)
         job.status = JOB_STATUS_STARTING;
         job.worker = handler.id;
         handler.startJob(job);
