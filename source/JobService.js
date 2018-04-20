@@ -64,8 +64,8 @@ class JobService extends EventEmitter {
         return this._options;
     }
 
-    createJob(jobType, data) {
-        return new NewJob(this, jobType, data);
+    createJob(jobType, payload) {
+        return new NewJob(this, jobType, payload);
     }
 
     getJob(jobID) {
@@ -82,6 +82,9 @@ class JobService extends EventEmitter {
                 } else if (job.attemptsDelay > 0 && attemptsDelayTimestampAllowsExecution(job.lastAttempt, job.attemptsDelay)) {
                     return true;
                 }
+            } else if (job.status === JOB_STATUS_IDLE) {
+                // An idle job
+                return true;
             }
             return false;
         });
@@ -89,6 +92,7 @@ class JobService extends EventEmitter {
     }
 
     shutdown() {
+        log.service.info("Shutting down");
         removeGlobalListeners(this);
         this.handlers.forEach(handler => {
             handler.removeListener("jobUpdate", this.__handleJobUpdate);
@@ -103,12 +107,14 @@ class JobService extends EventEmitter {
     }
 
     _addJob(job) {
-        log.service.info(`Adding new job: ${job.type}`);
+        log.service.info(`Adding new job: ${job.type} (${job.id})`);
         this.jobs.push(job);
         this._sortJobs();
+        return Promise.resolve();
     }
 
     _addHandler(handler) {
+        log.service.info(`Job handler registered for job type: ${handler.jobType} (${handler.commType})`);
         handler.on("jobUpdate", this.__handleJobUpdate);
         this.handlers.push(handler);
     }
@@ -128,6 +134,7 @@ class JobService extends EventEmitter {
                     return;
                 }
                 const job = this.getNextJob();
+                console.log(job);
                 if (job) {
                     this._startJob(job);
                 }

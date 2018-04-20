@@ -6,6 +6,7 @@ const {
     PROCESSOR_STATUS_ACTIVE,
     PROCESSOR_STATUS_IDLE
 } = require("./symbols.js");
+const log = require("./log.js");
 
 class JobHandler extends EventEmitter {
     constructor(id, jobType, commType) {
@@ -66,9 +67,10 @@ class JobHandler extends EventEmitter {
         if (this.status !== PROCESSOR_STATUS_IDLE) {
             throw new VError("Failed starting job on worker: Not in idle state");
         }
+        log.worker.info(`Starting job: ${job.type} (${job.id})`);
         this._status = PROCESSOR_STATUS_ACTIVE;
         setTimeout(() => {
-            this.dispatcher(job.data, this.id, this.commType);
+            this.dispatcher(job.payload, this.id, this.commType);
         }, 0);
     }
 }

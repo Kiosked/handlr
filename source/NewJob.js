@@ -18,18 +18,18 @@ const Priority = {
 };
 
 class NewJob {
-    constructor(service, type, data) {
+    constructor(service, type, payload) {
         this._service = service;
         this.type = type;
         this.priority = JOB_PRIORITY_NORMAL;
-        this.data = data;
+        this.payload = payload;
         this.attempts = 0;
         this.attemptsDelay = DefaultAttemptsDelay;
     }
 
     get data() {
         return Object.assign({}, {
-            data: this.data,
+            payload: this.payload,
             type: this.type,
             priority: this.priority,
             id: uuid(),
