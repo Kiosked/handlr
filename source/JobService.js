@@ -48,6 +48,7 @@ class JobService extends EventEmitter {
         this._handlers = [];
         this.__handleJobUpdate = this._handleJobUpdate.bind(this);
         addGlobalListeners(this);
+        this._init();
     }
 
     get handlers() {
@@ -92,6 +93,8 @@ class JobService extends EventEmitter {
             handler.removeListener("jobUpdate", this.__handleJobUpdate);
         });
         this._handlers = [];
+        clearTimeout(this._tick);
+        this._tick = null;
     }
 
     _acceptJob(workerID, jobID) {
@@ -110,6 +113,25 @@ class JobService extends EventEmitter {
 
     _handleJobUpdate() {
 
+    }
+
+    _init() {
+        if (this._tick !== null) {
+            return;
+        }
+        const startTicker = () => {
+            this._tick = setTimeout(() => {
+                if (this._tick === null) {
+                    return;
+                }
+                const job = this.getNextJob();
+                if (job) {
+                    this._startJob(job);
+                }
+                startTicker();
+            }, JOB_TICKER_DELAY);
+        };
+        startTicker();
     }
 
     _removeHandler(workerID) {
