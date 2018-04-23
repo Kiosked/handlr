@@ -70,7 +70,7 @@ class JobHandler extends EventEmitter {
         log.worker.info(`Starting job: ${job.type} (${job.id})`);
         this._status = PROCESSOR_STATUS_ACTIVE;
         setTimeout(() => {
-            this.dispatcher(job.payload, this.id, this.commType);
+            this.dispatcher(job, this.id, this.commType);
         }, 0);
     }
 }

@@ -64,9 +64,9 @@ class Proxy extends EventEmitter {
 
     _handleNewJob(msg) {
         if (msg && msg.workerID && msg.workerID === this.workerID) {
-            const { data } = msg;
-            this._acceptJob(data);
-            this.emit("job", data);
+            const { job } = msg;
+            this._acceptJob(job);
+            // this.emit("job", job);
         }
     }
 
