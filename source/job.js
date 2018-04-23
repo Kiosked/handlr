@@ -1,11 +1,13 @@
 const figure = require("figures");
 const chalk = require("chalk");
 const jsome = require("jsome");
+const PrettyError = require("pretty-error");
 const log = require("./log.js");
 const { indent } = require("./format.js");
 
 const INDENTATION = 4;
 
+const prettyError = new PrettyError();
 jsome.level.show = true;
 jsome.level.color = "gray";
 Object.assign(jsome.colors, {
@@ -37,11 +39,17 @@ function markAttempt(job) {
 }
 
 function setError(job, error) {
+    log.service.error(`Recording error for job ${job.id}:`);
+    try {
+        console.log(indent(prettyError.render(error), INDENTATION));
+    } catch (err) {
+        console.log(indent(error, INDENTATION));
+    }
     job.error = error;
 }
 
 function setResult(job, result) {
-    log.service.info(`Result for job ${job.id}:`);
+    log.service.info(`Recording result for job ${job.id}:`);
     try {
         console.log(indent(jsome.getColoredString(result), INDENTATION));
     } catch (err) {

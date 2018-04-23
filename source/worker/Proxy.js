@@ -1,6 +1,7 @@
 const cluster = require("cluster");
 const EventEmitter = require("eventemitter3");
 const isError = require("is-error");
+const serialiseError = require("serialize-error");
 const { getSharedChannel } = require("../MessageChannel.js");
 const log = require("../log.js");
 
@@ -33,7 +34,7 @@ class Proxy extends EventEmitter {
             serverIndex: this.serverIndex,
             workerID: this.workerID,
             jobID: job.id,
-            error: err.message
+            error: serialiseError(err)
         });
     }
 
