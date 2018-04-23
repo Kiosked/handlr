@@ -2,6 +2,7 @@ const VError = require("verror");
 const EventEmitter = require("eventemitter3");
 const NewJob = require("./NewJob.js");
 const { addGlobalListeners, removeGlobalListeners } = require("./listening.js");
+const { changeJobStatus, markAttempt } = require("./job.js");
 const {
     JOB_STATUS_CANCELLED,
     JOB_STATUS_COMPLETED,
@@ -103,7 +104,8 @@ class JobService extends EventEmitter {
     }
 
     _acceptJob(workerID, jobID) {
-
+        const job = this.getJob(jobID);
+        changeJobStatus(job, JOB_STATUS_RUNNING);
     }
 
     _addJob(job) {
@@ -119,8 +121,19 @@ class JobService extends EventEmitter {
         this.handlers.push(handler);
     }
 
-    _handleJobUpdate() {
+    _getHandler(handlerID) {
+        return this.handlers.find(handler => handler.id === handlerID);
+    }
 
+    _handleJobUpdate(digest) {
+        const { jobID, success } = digest;
+        const job = this.getJob(jobID);
+        if (success) {
+            changeJobStatus(job, JOB_STATUS_COMPLETED);
+        } else {
+            changeJobStatus(job, JOB_STATUS_FAILED);
+            markAttempt(job);
+        }
     }
 
     _init() {
@@ -134,7 +147,6 @@ class JobService extends EventEmitter {
                     return;
                 }
                 const job = this.getNextJob();
-                console.log(job);
                 if (job) {
                     this._startJob(job);
                 }
@@ -182,8 +194,8 @@ class JobService extends EventEmitter {
             return false;
         }
         // start job
-        log.service.info(`Starting job: ${job.type} (${id})`)
-        job.status = JOB_STATUS_STARTING;
+        log.service.info(`Assigning job ${id} (${job.type}) to handler: ${handler.id}`);
+        changeJobStatus(job, JOB_STATUS_STARTING);
         job.worker = handler.id;
         handler.startJob(job);
         return true;

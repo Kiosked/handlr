@@ -28,10 +28,24 @@ class Proxy extends EventEmitter {
     failJob(job, err) {
         log.worker.error(`Job execution failed for job: ${job.id} (${job.type})`);
         log.worker.error(`Job ${job.id} failed with error`, err);
+        getSharedChannel().emit("message", {
+            type: "jobFailed",
+            serverIndex: this.serverIndex,
+            workerID: this.workerID,
+            jobID: job.id,
+            error: err.message
+        });
     }
 
     resolveJob(job, results) {
         log.worker.success(`Job was successfully completed: ${job.id} (${job.type})`);
+        getSharedChannel().emit("message", {
+            type: "jobCompleted",
+            serverIndex: this.serverIndex,
+            workerID: this.workerID,
+            jobID: job.id,
+            results
+        });
     }
 
     shutdown() {

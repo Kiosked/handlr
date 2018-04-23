@@ -14,22 +14,44 @@ function addGlobalListeners(service) {
                 // not for us
                 return;
             }
-            if (message.type === "register") {
-                const { jobType, workerID } = message;
-                assert(workerID.length > 0, "Worker ID must be provided");
-                assert(jobType.length > 0, "Worker job type must be provided");
-                const handler = new JobHandler(workerID, jobType, COMM_TYPE_LOCAL);
-                handler.dispatcher = (...args) => dispatch(...args);
-                service._addHandler(handler);
-            } else if (message.type === "deregister") {
-                const { workerID } = message;
-                assert(workerID.length > 0, "Worker ID must be provided");
-                service._removeHandler(workerID);
-            } else if (message.type === "accept") {
-                const { jobID, workerID } = message;
-                assert(workerID.length > 0, "Worker ID must be provided");
-                assert(jobID.length > 0, "Job ID type must be provided");
-                service._acceptJob(workerID, jobID);
+            switch (message.type) {
+                case "register": {
+                    const { jobType, workerID } = message;
+                    assert(workerID.length > 0, "Worker ID must be provided");
+                    assert(jobType.length > 0, "Worker job type must be provided");
+                    const handler = new JobHandler(workerID, jobType, COMM_TYPE_LOCAL);
+                    handler.dispatcher = (...args) => dispatch(...args);
+                    service._addHandler(handler);
+                    break;
+                }
+                case "deregister": {
+                    const { workerID } = message;
+                    assert(workerID.length > 0, "Worker ID must be provided");
+                    service._removeHandler(workerID);
+                    break;
+                }
+                case "accept": {
+                    const { jobID, workerID } = message;
+                    assert(workerID.length > 0, "Worker ID must be provided");
+                    assert(jobID.length > 0, "Job ID type must be provided");
+                    service._acceptJob(workerID, jobID);
+                    break;
+                }
+                case "jobCompleted": {
+                    const { workerID, jobID, results } = message;
+                    assert(workerID.length > 0, "Worker ID must be provided");
+                    assert(jobID.length > 0, "Job ID type must be provided");
+                    const handler = service._getHandler(workerID);
+                    assert(handler, "Job handler for completed job must be registered");
+                    handler.completeJob(jobID, results);
+                    break;
+                }
+                case "jobFailed": {
+
+                    break;
+                }
+                default:
+                    throw new Error(`Failed handling message: Unknown type: ${message.type}`);
             }
         }
     };
