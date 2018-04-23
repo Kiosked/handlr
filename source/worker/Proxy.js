@@ -2,6 +2,7 @@ const cluster = require("cluster");
 const EventEmitter = require("eventemitter3");
 const isError = require("is-error");
 const { getSharedChannel } = require("../MessageChannel.js");
+const log = require("../log.js");
 
 class Proxy extends EventEmitter {
     constructor(workerID, serverIndex) {
@@ -24,12 +25,13 @@ class Proxy extends EventEmitter {
         return this._workerID;
     }
 
-    failJob(err) {
-
+    failJob(job, err) {
+        log.worker.error(`Job execution failed for job: ${job.id} (${job.type})`);
+        log.worker.error(`Job ${job.id} failed with error`, err);
     }
 
-    resolveJob(results) {
-
+    resolveJob(job, results) {
+        log.worker.success(`Job was successfully completed: ${job.id} (${job.type})`);
     }
 
     shutdown() {
@@ -66,7 +68,7 @@ class Proxy extends EventEmitter {
         if (msg && msg.workerID && msg.workerID === this.workerID) {
             const { job } = msg;
             this._acceptJob(job);
-            // this.emit("job", job);
+            this.emit("job", job);
         }
     }
 
