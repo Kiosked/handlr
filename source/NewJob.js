@@ -21,23 +21,23 @@ class NewJob {
     constructor(service, type, payload) {
         this._service = service;
         this.type = type;
-        this.priority = JOB_PRIORITY_NORMAL;
+        this._priority = JOB_PRIORITY_NORMAL;
         this.payload = payload;
-        this.attempts = 0;
-        this.attemptsDelay = DefaultAttemptsDelay;
+        this._attempts = 0;
+        this._attemptsDelay = DefaultAttemptsDelay;
     }
 
     get data() {
         return Object.assign({}, {
             payload: this.payload,
             type: this.type,
-            priority: this.priority,
+            priority: this._priority,
             id: uuid(),
             status: JOB_STATUS_IDLE,
             progress: 0,
             progressMax: 1,
-            attempts: this.attempts,
-            attemptsDelay: this.attemptsDelay,
+            attempts: this._attempts,
+            attemptsDelay: this._attemptsDelay,
             lastAttempt: null,
             worker: null,
             result: null,
@@ -47,10 +47,12 @@ class NewJob {
 
     attempts(num, delay) {
         if (num >= 0) {
-            this.attempts = num;
+            this._attempts = num;
             if (delay) {
                 if (delay > 0 || typeof delay === "function") {
-                    this.attemptsDelay = delay;
+                    this._attemptsDelay = delay;
+                } else if (typeof delay === "string") {
+                    this._attemptsDelay = ms(delay);
                 } else {
                     throw new Error(`Failed setting job attempts delay: Invalid type for delay: ${delay}`);
                 }
@@ -72,7 +74,7 @@ class NewJob {
         if (!prio) {
             throw new VError(`Failed setting job priority: Invalid priority value: ${name}`);
         }
-        this.priority = prio;
+        this._priority = prio;
         return this;
     }
 }

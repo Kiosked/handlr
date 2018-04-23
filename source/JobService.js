@@ -182,8 +182,8 @@ class JobService extends EventEmitter {
 
     _startJob(job) {
         const { status, type, id } = job;
-        if (status !== JOB_STATUS_IDLE) {
-            throw new VError(`Failed starting job: Job not in IDLE state: ${status}`);
+        if (status !== JOB_STATUS_IDLE && status !== JOB_STATUS_FAILED && status !== JOB_STATUS_CANCELLED) {
+            throw new VError(`Failed starting job: Job not in IDLE/FAILED/CANCELLED state: ${status}`);
         }
         log.service.info(`Searching for handlers for job: ${job.type} (${id})`);
         // find a worker that is idle

@@ -2,6 +2,7 @@ const figure = require("figures");
 const chalk = require("chalk");
 const jsome = require("jsome");
 const PrettyError = require("pretty-error");
+const prettyMs = require("pretty-ms");
 const log = require("./log.js");
 const { indent } = require("./format.js");
 
@@ -36,6 +37,10 @@ function markAttempt(job) {
     }
     job.lastAttempt = Date.now();
     log.service.warning(`Job ${job.id} has ${chalk.red(job.attempts)} attempts left`);
+    const { attemptsDelay } = job;
+    if (typeof attemptsDelay === "number" && job.attempts > 0) {
+        log.service.info(`Job ${job.id} will be retried in: ${chalk.cyan(prettyMs(attemptsDelay))}`);
+    }
 }
 
 function setError(job, error) {
