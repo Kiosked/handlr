@@ -39,7 +39,9 @@ class NewJob {
             attempts: this.attempts,
             attemptsDelay: this.attemptsDelay,
             lastAttempt: null,
-            worker: null
+            worker: null,
+            result: null,
+            error: null
         });
     }
 

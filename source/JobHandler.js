@@ -55,20 +55,21 @@ class JobHandler extends EventEmitter {
         this._dispatcher = newDispatcher;
     }
 
-    completeJob(jobID, results) {
+    completeJob(jobID, result) {
         this.emit("jobUpdate", {
             jobID,
             success: true,
-            results
+            result
         });
         this._status = PROCESSOR_STATUS_IDLE;
         this.job = null;
     }
 
-    failJob(jobID) {
+    failJob(jobID, error) {
         this.emit("jobUpdate", {
             jobID,
-            success: false
+            success: false,
+            error
         });
         this._status = PROCESSOR_STATUS_IDLE;
         this.job = null;

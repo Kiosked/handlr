@@ -8,6 +8,7 @@
     "eventemitter3": "^3.0.1",
     "figures": "^2.0.0",
     "is-error": "^2.2.1",
+    "jsome": "^2.5.0",
     "left-pad": "^1.3.0",
     "log-symbols": "^2.2.0",
     "ms": "^2.1.1",

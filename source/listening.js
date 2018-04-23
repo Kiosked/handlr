@@ -47,7 +47,12 @@ function addGlobalListeners(service) {
                     break;
                 }
                 case "jobFailed": {
-
+                    const { workerID, jobID, error } = message;
+                    assert(workerID.length > 0, "Worker ID must be provided");
+                    assert(jobID.length > 0, "Job ID type must be provided");
+                    const handler = service._getHandler(workerID);
+                    assert(handler, "Job handler for failed job must be registered");
+                    handler.failJob(jobID, error);
                     break;
                 }
                 default:

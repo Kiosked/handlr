@@ -2,7 +2,7 @@ const VError = require("verror");
 const EventEmitter = require("eventemitter3");
 const NewJob = require("./NewJob.js");
 const { addGlobalListeners, removeGlobalListeners } = require("./listening.js");
-const { changeJobStatus, markAttempt } = require("./job.js");
+const { changeJobStatus, markAttempt, setError, setResult } = require("./job.js");
 const {
     JOB_STATUS_CANCELLED,
     JOB_STATUS_COMPLETED,
@@ -130,9 +130,11 @@ class JobService extends EventEmitter {
         const job = this.getJob(jobID);
         if (success) {
             changeJobStatus(job, JOB_STATUS_COMPLETED);
+            setResult(job, digest.result);
         } else {
             changeJobStatus(job, JOB_STATUS_FAILED);
             markAttempt(job);
+            setError(job, digest.error);
         }
     }
 
