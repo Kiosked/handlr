@@ -49,7 +49,7 @@ const ResultAction = {
 };
 
 class NewJob {
-    constructor(service, type, payload) {
+    constructor(service, type, payload = {}) {
         if (typeof payload !== "object" || payload === null) {
             throw new Error("Job payload must be an object");
         }

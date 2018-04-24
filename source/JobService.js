@@ -20,9 +20,13 @@ const BASE_OPTIONS = {
     serverIndex: 0
 };
 
-function attemptsDelayAllowsExecution(method) {
+function attemptsDelayAllowsExecution(lastAttemptTs, method) {
     try {
-        return !!method();
+        const result = method(lastAttemptTs);
+        if (typeof result === "string" || typeof result === "number") {
+            return attemptsDelayTimestampAllowsExecution(lastAttemptTs, result);
+        }
+        return !!result;
     } catch (err) {
         return false;
     }
@@ -79,7 +83,7 @@ class JobService extends EventEmitter {
             let matching = false;
             if (job.status === JOB_STATUS_FAILED && job.attempts > 0) {
                 // A failed job, but with attempts left
-                if (typeof job.attemptsDelay === "function" && attemptsDelayAllowsExecution(job.attemptsDelay)) {
+                if (typeof job.attemptsDelay === "function" && attemptsDelayAllowsExecution(job.lastAttempt, job.attemptsDelay)) {
                     matching = true;
                 } else if (job.attemptsDelay > 0 && attemptsDelayTimestampAllowsExecution(job.lastAttempt, job.attemptsDelay)) {
                     matching = true;
