@@ -3,6 +3,18 @@
   "version": "0.0.0",
   "description": "Job queue and handler for NodeJS",
   "main": "source/index.js",
+  "scripts": {
+    "format": "prettier --write '{source,test}/**/*.js'",
+    "precommit": "lint-staged",
+    "test": "npm run test:format",
+    "test:format": "prettier-check '{source,test}/**/*.js'"
+  },
+  "lint-staged": {
+    "{source,test}/**/*.js": [
+      "prettier --write",
+      "git add"
+    ]
+  },
   "dependencies": {
     "chalk": "^2.4.0",
     "eventemitter3": "^3.0.1",
@@ -19,9 +31,11 @@
     "uuid": "^3.2.1",
     "verror": "^1.10.0"
   },
-  "devDependencies": {},
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "devDependencies": {
+    "husky": "^0.14.3",
+    "lint-staged": "^7.0.4",
+    "prettier": "^1.12.1",
+    "prettier-check": "^2.0.0"
   },
   "repository": {
     "type": "git",
