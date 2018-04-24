@@ -1,5 +1,8 @@
 const uuid = require("uuid/v4");
 const Proxy = require("./Proxy.js");
+const { patchConsole } = require("../console.js");
+
+patchConsole();
 
 function registerHandler(jobType, callback, serverIndex = 0) {
     const proxy = new Proxy(uuid(), serverIndex);

@@ -4,6 +4,7 @@ const jsome = require("jsome");
 const PrettyError = require("pretty-error");
 const prettyMs = require("pretty-ms");
 const log = require("./log.js");
+const { consoleLog } = require("./console.js");
 const { indent } = require("./format.js");
 const { mergePayloads } = require("./results.js");
 const {
@@ -80,9 +81,9 @@ function resolvePayload(targetJob, dependedJobs = []) {
 function setError(job, error) {
     log.service.error(`Recording error for job ${job.id}:`);
     try {
-        console.log(indent(prettyError.render(error), INDENTATION));
+        consoleLog(indent(prettyError.render(error), INDENTATION));
     } catch (err) {
-        console.log(indent(error, INDENTATION));
+        consoleLog(indent(error, INDENTATION));
     }
     job.error = error;
 }
@@ -90,9 +91,9 @@ function setError(job, error) {
 function setResult(job, result) {
     log.service.info(`Recording result for job ${job.id}:`);
     try {
-        console.log(indent(jsome.getColoredString(result), INDENTATION));
+        consoleLog(indent(jsome.getColoredString(result), INDENTATION));
     } catch (err) {
-        console.log(indent(result, INDENTATION));
+        consoleLog(indent(result, INDENTATION));
     }
     job.result = result;
 }

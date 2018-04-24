@@ -1,7 +1,7 @@
-function indent(text, spaces) {
+function indent(text, spaces, prefix = "") {
     const lines = `${text}`.split("\n");
     lines.forEach((line, index) => {
-        let newLine = line;
+        let newLine = `${prefix}${line}`;
         for (let i = 0; i < spaces; i += 1) {
             newLine = " " + newLine;
         }
