@@ -36,7 +36,7 @@ function attemptsDelayTimestampAllowsExecution(lastAttemptTs, delay) {
     if (!lastAttemptTs) {
         return true;
     }
-    return (lastAttemptTs + delay) <= Date.now();
+    return lastAttemptTs + delay <= Date.now();
 }
 
 function sanitiseOptions(ops) {
@@ -83,9 +83,15 @@ class JobService extends EventEmitter {
             let matching = false;
             if (job.status === JOB_STATUS_FAILED && job.attempts > 0) {
                 // A failed job, but with attempts left
-                if (typeof job.attemptsDelay === "function" && attemptsDelayAllowsExecution(job.lastAttempt, job.attemptsDelay)) {
+                if (
+                    typeof job.attemptsDelay === "function" &&
+                    attemptsDelayAllowsExecution(job.lastAttempt, job.attemptsDelay)
+                ) {
                     matching = true;
-                } else if (job.attemptsDelay > 0 && attemptsDelayTimestampAllowsExecution(job.lastAttempt, job.attemptsDelay)) {
+                } else if (
+                    job.attemptsDelay > 0 &&
+                    attemptsDelayTimestampAllowsExecution(job.lastAttempt, job.attemptsDelay)
+                ) {
                     matching = true;
                 }
             } else if (job.status === JOB_STATUS_IDLE) {
@@ -132,7 +138,9 @@ class JobService extends EventEmitter {
     }
 
     _addHandler(handler) {
-        log.service.info(`Job handler registered for job type: ${handler.jobType} (${handler.commType})`);
+        log.service.info(
+            `Job handler registered for job type: ${handler.jobType} (${handler.commType})`
+        );
         handler.on("jobUpdate", this.__handleJobUpdate);
         this.handlers.push(handler);
     }
@@ -198,14 +206,19 @@ class JobService extends EventEmitter {
 
     _startJob(job) {
         const { status, type, id } = job;
-        if (status !== JOB_STATUS_IDLE && status !== JOB_STATUS_FAILED && status !== JOB_STATUS_CANCELLED) {
-            throw new VError(`Failed starting job: Job not in IDLE/FAILED/CANCELLED state: ${status}`);
+        if (
+            status !== JOB_STATUS_IDLE &&
+            status !== JOB_STATUS_FAILED &&
+            status !== JOB_STATUS_CANCELLED
+        ) {
+            throw new VError(
+                `Failed starting job: Job not in IDLE/FAILED/CANCELLED state: ${status}`
+            );
         }
         log.service.info(`Searching for handlers for job: ${job.type} (${id})`);
         // find a worker that is idle
-        const handler = this.handlers.find(handler =>
-            handler.jobType === type &&
-            handler.status === PROCESSOR_STATUS_IDLE
+        const handler = this.handlers.find(
+            handler => handler.jobType === type && handler.status === PROCESSOR_STATUS_IDLE
         );
         if (!handler) {
             // no handler available

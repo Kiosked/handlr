@@ -35,10 +35,14 @@ function patchConsole() {
         consoleLog(indent(argsToString(args), 5, `${chalk.dim("│")} `));
     };
     console.warn = (...args) => {
-        consoleLog(indent(argsToString(args), 3, `${chalk.yellow(logSymbol.warning)} ${chalk.dim("│")} `));
+        consoleLog(
+            indent(argsToString(args), 3, `${chalk.yellow(logSymbol.warning)} ${chalk.dim("│")} `)
+        );
     };
     console.error = (...args) => {
-        consoleLog(indent(argsToString(args), 3, `${chalk.yellow(logSymbol.error)} ${chalk.dim("│")} `));
+        consoleLog(
+            indent(argsToString(args), 3, `${chalk.yellow(logSymbol.error)} ${chalk.dim("│")} `)
+        );
     };
     return true;
 }

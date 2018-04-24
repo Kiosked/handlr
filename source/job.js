@@ -47,7 +47,9 @@ function markAttempt(job) {
     log.service.warning(`Job ${job.id} has ${chalk.red(job.attempts)} attempts left`);
     const { attemptsDelay } = job;
     if (typeof attemptsDelay === "number" && job.attempts > 0) {
-        log.service.info(`Job ${job.id} will be retried in: ${chalk.cyan(prettyMs(attemptsDelay))}`);
+        log.service.info(
+            `Job ${job.id} will be retried in: ${chalk.cyan(prettyMs(attemptsDelay))}`
+        );
     }
 }
 
@@ -58,23 +60,19 @@ function resolvePayload(targetJob, dependedJobs = []) {
             return targetJob.payload;
         }
         case MULTI_RESULT_FIRST: {
-            const [ firstDepended ] = dependedJobs;
+            const [firstDepended] = dependedJobs;
             return firstDepended ? firstDepended.result : targetJob.payload;
         }
         case MULTI_RESULT_MERGE_DEPENDS: {
-            return mergePayloads(
-                targetJob.payload,
-                ...dependedJobs.map(job => job.result)
-            );
+            return mergePayloads(targetJob.payload, ...dependedJobs.map(job => job.result));
         }
         case MULTI_RESULT_MERGE_PAYLOAD: {
-            return mergePayloads(
-                ...dependedJobs.map(job => job.result),
-                targetJob.payload
-            );
+            return mergePayloads(...dependedJobs.map(job => job.result), targetJob.payload);
         }
         default:
-            throw new Error(`Failed resolving payload for job: Invalid result action: ${dependentResultAction}`);
+            throw new Error(
+                `Failed resolving payload for job: Invalid result action: ${dependentResultAction}`
+            );
     }
 }
 

@@ -15,10 +15,10 @@ const {
 
 const DefaultAttemptsDelay = ms("1m");
 const Priority = {
-    "critical": JOB_PRIORITY_CRITICAL,
-    "high": JOB_PRIORITY_HIGH,
-    "normal": JOB_PRIORITY_NORMAL,
-    "low": JOB_PRIORITY_LOW
+    critical: JOB_PRIORITY_CRITICAL,
+    high: JOB_PRIORITY_HIGH,
+    normal: JOB_PRIORITY_NORMAL,
+    low: JOB_PRIORITY_LOW
 };
 
 /**
@@ -64,23 +64,26 @@ class NewJob {
     }
 
     get data() {
-        return Object.assign({}, {
-            payload: this.payload,
-            type: this.type,
-            priority: this._priority,
-            id: uuid(),
-            status: JOB_STATUS_IDLE,
-            depends: [...this._depends],
-            dependentResultAction: this._resultAction,
-            progress: 0,
-            progressMax: 1,
-            attempts: this._attempts,
-            attemptsDelay: this._attemptsDelay,
-            lastAttempt: null,
-            worker: null,
-            result: null,
-            error: null
-        });
+        return Object.assign(
+            {},
+            {
+                payload: this.payload,
+                type: this.type,
+                priority: this._priority,
+                id: uuid(),
+                status: JOB_STATUS_IDLE,
+                depends: [...this._depends],
+                dependentResultAction: this._resultAction,
+                progress: 0,
+                progressMax: 1,
+                attempts: this._attempts,
+                attemptsDelay: this._attemptsDelay,
+                lastAttempt: null,
+                worker: null,
+                result: null,
+                error: null
+            }
+        );
     }
 
     attempts(num, delay) {
@@ -92,7 +95,9 @@ class NewJob {
                 } else if (typeof delay === "string") {
                     this._attemptsDelay = ms(delay);
                 } else {
-                    throw new Error(`Failed setting job attempts delay: Invalid type for delay: ${delay}`);
+                    throw new Error(
+                        `Failed setting job attempts delay: Invalid type for delay: ${delay}`
+                    );
                 }
             }
             return this;
@@ -102,9 +107,7 @@ class NewJob {
 
     commit() {
         const data = this.data;
-        return this._service
-            ._addJob(data)
-            .then(() => data.id);
+        return this._service._addJob(data).then(() => data.id);
     }
 
     /**
@@ -117,7 +120,9 @@ class NewJob {
     depends(jobIDs, resultAction = "mergeDepends") {
         const action = ResultAction[resultAction];
         if (!action) {
-            throw new VError(`Failed setting job result processing action: Invalid action value: ${resultAction}`);
+            throw new VError(
+                `Failed setting job result processing action: Invalid action value: ${resultAction}`
+            );
         }
         if (Array.isArray(jobIDs)) {
             this._depends = [...jobIDs];

@@ -39,7 +39,13 @@ function success(type, ...args) {
 
 function time() {
     const date = new Date();
-    return chalk.dim(`[${leftPad(date.getHours(), 2, "0")}:${leftPad(date.getMinutes(), 2, "0")}:${leftPad(date.getSeconds(), 2, "0")}]`);
+    return chalk.dim(
+        `[${leftPad(date.getHours(), 2, "0")}:${leftPad(date.getMinutes(), 2, "0")}:${leftPad(
+            date.getSeconds(),
+            2,
+            "0"
+        )}]`
+    );
 }
 
 function warning(type, ...args) {

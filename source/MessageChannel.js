@@ -9,6 +9,6 @@ MessageChannel.getSharedChannel = function getSharedChannel() {
         __sharedChannel = new MessageChannel();
     }
     return __sharedChannel;
-}
+};
 
 module.exports = MessageChannel;

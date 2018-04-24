@@ -41,8 +41,8 @@ class Proxy extends EventEmitter {
 
     resolveJob(job, jobResult) {
         log.worker.success(`Job was successfully completed: ${job.id} (${job.type})`);
-        const result = (typeof jobResult !== "object" || jobResult === null) ?
-            { result: jobResult } : jobResult;
+        const result =
+            typeof jobResult !== "object" || jobResult === null ? { result: jobResult } : jobResult;
         getSharedChannel().emit("message", {
             type: "jobCompleted",
             serverIndex: this.serverIndex,

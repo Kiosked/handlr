@@ -1,9 +1,6 @@
 const VError = require("verror");
 const { getSharedChannel } = require("./MessageChannel.js");
-const {
-    COMM_TYPE_CLUSTER,
-    COMM_TYPE_LOCAL
-} = require("./symbols.js");
+const { COMM_TYPE_CLUSTER, COMM_TYPE_LOCAL } = require("./symbols.js");
 
 function dispatch(job, payload, workerID, commType) {
     if (commType === COMM_TYPE_CLUSTER) {

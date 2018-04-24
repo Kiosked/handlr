@@ -10,10 +10,7 @@ function isObject(obj) {
 
 function mergePayloads(...payloads) {
     return payloads.reduce(
-        (output, payload) => merge.recursive(
-            output,
-            isObject(payload) ? payload : {}
-        ),
+        (output, payload) => merge.recursive(output, isObject(payload) ? payload : {}),
         {}
     );
 }
