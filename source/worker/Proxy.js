@@ -5,7 +5,7 @@ const serialiseError = require("serialize-error");
 const { getSharedChannel } = require("../MessageChannel.js");
 const log = require("../log.js");
 const { clone } = require("../results.js");
-const { CLUSTER_MESSAGE_PREFIX, CLUSTER_MESSAGE_PROP } = require("../symbols.js");
+const { CLUSTER_MESSAGE_PROP } = require("../symbols.js");
 
 class Proxy extends EventEmitter {
     constructor(workerID, serverIndex) {
@@ -14,7 +14,7 @@ class Proxy extends EventEmitter {
         this._serverIndex = serverIndex;
         this.__handleNewJob = this._handleNewJob.bind(this);
         if (cluster.isWorker) {
-            process.on(`${CLUSTER_MESSAGE_PREFIX}job`, this.__handleNewJob);
+            process.on("message", this.__handleNewJob);
         } else {
             getSharedChannel().on("job", this.__handleNewJob);
         }
@@ -65,7 +65,7 @@ class Proxy extends EventEmitter {
     shutdown() {
         this._deregister();
         if (cluster.isWorker) {
-            process.removeListener(`${CLUSTER_MESSAGE_PREFIX}job`, this.__handleNewJob);
+            process.removeListener("message", this.__handleNewJob);
         } else {
             getSharedChannel().removeListener("job", this.__handleNewJob);
         }
@@ -91,6 +91,10 @@ class Proxy extends EventEmitter {
     }
 
     _handleNewJob(msg) {
+        if (msg && msg[CLUSTER_MESSAGE_PROP] !== true) {
+            // not for us
+            return;
+        }
         if (msg && msg.workerID && msg.workerID === this.workerID) {
             const { job, payload } = msg;
             this._acceptJob(job);
