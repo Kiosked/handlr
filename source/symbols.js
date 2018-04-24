@@ -1,4 +1,7 @@
 module.exports = Object.freeze({
+    CLUSTER_MESSAGE_PREFIX: "$$handlr:cluster:",
+    CLUSTER_MESSAGE_PROP: "$$handlr:cluster",
+
     COMM_TYPE_CLUSTER: "comm:cluster",
     COMM_TYPE_LOCAL: "comm:local",
 

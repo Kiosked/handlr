@@ -1,10 +1,14 @@
 const VError = require("verror");
 const { getSharedChannel } = require("./MessageChannel.js");
-const { COMM_TYPE_CLUSTER, COMM_TYPE_LOCAL } = require("./symbols.js");
+const { CLUSTER_MESSAGE_PREFIX, COMM_TYPE_CLUSTER, COMM_TYPE_LOCAL } = require("./symbols.js");
 
-function dispatch(job, payload, workerID, commType) {
+function dispatch(job, payload, workerID, commType, clusterWorkerID) {
     if (commType === COMM_TYPE_CLUSTER) {
-        // todo
+        cluster.emit(`${CLUSTER_MESSAGE_PREFIX}job`, {
+            job,
+            payload,
+            workerID
+        });
     } else if (commType === COMM_TYPE_LOCAL) {
         getSharedChannel().emit("job", {
             job,

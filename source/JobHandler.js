@@ -17,6 +17,7 @@ class JobHandler extends EventEmitter {
         this._jobType = jobType;
         this._commType = commType;
         this._id = id;
+        this.clusterWorkerID = null;
         if (!id) {
             throw new VError("Failed constructing JobHandler: Invalid or no ID provided");
         }
