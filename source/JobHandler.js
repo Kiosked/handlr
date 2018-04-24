@@ -79,14 +79,14 @@ class JobHandler extends EventEmitter {
 
     }
 
-    startJob(job) {
+    startJob(job, payload) {
         if (this.status !== PROCESSOR_STATUS_IDLE) {
             throw new VError("Failed starting job on worker: Not in idle state");
         }
         log.service.info(`Starting job: ${job.type} (${job.id})`);
         this._status = PROCESSOR_STATUS_ACTIVE;
         setTimeout(() => {
-            this.dispatcher(job, this.id, this.commType);
+            this.dispatcher(job, payload, this.id, this.commType);
         }, 0);
     }
 }

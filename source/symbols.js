@@ -18,6 +18,11 @@ module.exports = Object.freeze({
 
     MESSAGE_PREFIX: "handlr:clustermsg:",
 
+    MULTI_RESULT_DISCARD: "result:multi:discard",
+    MULTI_RESULT_FIRST: "result:multi:first",
+    MULTI_RESULT_MERGE_DEPENDS: "result:multi:mergedepends",
+    MULTI_RESULT_MERGE_PAYLOAD: "result:multi:mergepayload",
+
     PROCESSOR_STATUS_ACTIVE: "processor:status:active",
     PROCESSOR_STATUS_IDLE: "processor:status:idle"
 });

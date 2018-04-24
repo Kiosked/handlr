@@ -5,12 +5,13 @@ const {
     COMM_TYPE_LOCAL
 } = require("./symbols.js");
 
-function dispatch(job, workerID, commType) {
+function dispatch(job, payload, workerID, commType) {
     if (commType === COMM_TYPE_CLUSTER) {
         // todo
     } else if (commType === COMM_TYPE_LOCAL) {
         getSharedChannel().emit("job", {
             job,
+            payload,
             workerID
         });
     } else {

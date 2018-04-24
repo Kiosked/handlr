@@ -3,9 +3,9 @@ const Proxy = require("./Proxy.js");
 
 function registerHandler(jobType, callback, serverIndex = 0) {
     const proxy = new Proxy(uuid(), serverIndex);
-    proxy.on("job", job => {
+    proxy.on("job", (job, payload) => {
         try {
-            const output = callback(job.payload);
+            const output = callback(payload);
             if (output && typeof output.then === "function") {
                 output
                     .then(result => proxy.resolveJob(job, result))

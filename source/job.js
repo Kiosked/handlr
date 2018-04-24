@@ -5,6 +5,13 @@ const PrettyError = require("pretty-error");
 const prettyMs = require("pretty-ms");
 const log = require("./log.js");
 const { indent } = require("./format.js");
+const { mergePayloads } = require("./results.js");
+const {
+    MULTI_RESULT_DISCARD,
+    MULTI_RESULT_FIRST,
+    MULTI_RESULT_MERGE_DEPENDS,
+    MULTI_RESULT_MERGE_PAYLOAD
+} = require("./symbols.js");
 
 const INDENTATION = 4;
 
@@ -43,6 +50,33 @@ function markAttempt(job) {
     }
 }
 
+function resolvePayload(targetJob, dependedJobs = []) {
+    const { dependentResultAction } = targetJob;
+    switch (dependentResultAction) {
+        case MULTI_RESULT_DISCARD: {
+            return targetJob.payload;
+        }
+        case MULTI_RESULT_FIRST: {
+            const [ firstDepended ] = dependedJobs;
+            return firstDepended ? firstDepended.result : targetJob.payload;
+        }
+        case MULTI_RESULT_MERGE_DEPENDS: {
+            return mergePayloads(
+                targetJob.payload,
+                ...dependedJobs.map(job => job.result)
+            );
+        }
+        case MULTI_RESULT_MERGE_PAYLOAD: {
+            return mergePayloads(
+                ...dependedJobs.map(job => job.result),
+                targetJob.payload
+            );
+        }
+        default:
+            throw new Error(`Failed resolving payload for job: Invalid result action: ${dependentResultAction}`);
+    }
+}
+
 function setError(job, error) {
     log.service.error(`Recording error for job ${job.id}:`);
     try {
@@ -66,6 +100,7 @@ function setResult(job, result) {
 module.exports = {
     changeJobStatus,
     markAttempt,
+    resolvePayload,
     setError,
     setResult
 };

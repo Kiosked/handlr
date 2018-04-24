@@ -4,6 +4,7 @@ const isError = require("is-error");
 const serialiseError = require("serialize-error");
 const { getSharedChannel } = require("../MessageChannel.js");
 const log = require("../log.js");
+const { clone } = require("../results.js");
 
 class Proxy extends EventEmitter {
     constructor(workerID, serverIndex) {
@@ -38,14 +39,16 @@ class Proxy extends EventEmitter {
         });
     }
 
-    resolveJob(job, results) {
+    resolveJob(job, jobResult) {
         log.worker.success(`Job was successfully completed: ${job.id} (${job.type})`);
+        const result = (typeof jobResult !== "object" || jobResult === null) ?
+            { result: jobResult } : jobResult;
         getSharedChannel().emit("message", {
             type: "jobCompleted",
             serverIndex: this.serverIndex,
             workerID: this.workerID,
             jobID: job.id,
-            results
+            result: clone(result)
         });
     }
 
@@ -81,9 +84,9 @@ class Proxy extends EventEmitter {
 
     _handleNewJob(msg) {
         if (msg && msg.workerID && msg.workerID === this.workerID) {
-            const { job } = msg;
+            const { job, payload } = msg;
             this._acceptJob(job);
-            this.emit("job", job);
+            this.emit("job", job, payload);
         }
     }
 

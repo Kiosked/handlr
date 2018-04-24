@@ -1,8 +1,9 @@
 const VError = require("verror");
 const EventEmitter = require("eventemitter3");
+const { arrowRight } = require("figures");
 const NewJob = require("./NewJob.js");
 const { addGlobalListeners, removeGlobalListeners } = require("./listening.js");
-const { changeJobStatus, markAttempt, setError, setResult } = require("./job.js");
+const { changeJobStatus, markAttempt, resolvePayload, setError, setResult } = require("./job.js");
 const {
     JOB_STATUS_CANCELLED,
     JOB_STATUS_COMPLETED,
@@ -75,19 +76,24 @@ class JobService extends EventEmitter {
 
     getNextJob() {
         const nextJob = this.jobs.find(job => {
-            // @todo delayed
+            let matching = false;
             if (job.status === JOB_STATUS_FAILED && job.attempts > 0) {
                 // A failed job, but with attempts left
                 if (typeof job.attemptsDelay === "function" && attemptsDelayAllowsExecution(job.attemptsDelay)) {
-                    return true;
+                    matching = true;
                 } else if (job.attemptsDelay > 0 && attemptsDelayTimestampAllowsExecution(job.lastAttempt, job.attemptsDelay)) {
-                    return true;
+                    matching = true;
                 }
             } else if (job.status === JOB_STATUS_IDLE) {
                 // An idle job
-                return true;
+                matching = true;
             }
-            return false;
+            if (matching && job.depends.length > 0) {
+                // Check dependent jobs are COMPLETED
+                const dependentJobs = job.depends.map(jobID => this.getJob(jobID));
+                matching = dependentJobs.every(job => job.status === JOB_STATUS_COMPLETED);
+            }
+            return matching;
         });
         return nextJob || null;
     }
@@ -110,6 +116,12 @@ class JobService extends EventEmitter {
 
     _addJob(job) {
         log.service.info(`Adding new job: ${job.type} (${job.id})`);
+        if (job.depends.length > 0) {
+            log.service.info(`Job ${job.id} depends on:`);
+            job.depends.forEach(dependedID => {
+                log.service.info(`\t${arrowRight} ${dependedID}`);
+            });
+        }
         this.jobs.push(job);
         this._sortJobs();
         return Promise.resolve();
@@ -129,11 +141,11 @@ class JobService extends EventEmitter {
         const { jobID, success } = digest;
         const job = this.getJob(jobID);
         if (success) {
-            changeJobStatus(job, JOB_STATUS_COMPLETED);
             setResult(job, digest.result);
+            changeJobStatus(job, JOB_STATUS_COMPLETED);
         } else {
-            changeJobStatus(job, JOB_STATUS_FAILED);
             markAttempt(job);
+            changeJobStatus(job, JOB_STATUS_FAILED);
             setError(job, digest.error);
         }
     }
@@ -195,11 +207,15 @@ class JobService extends EventEmitter {
             // no handler available
             return false;
         }
+        // prepare payload
+        const dependedJobs = job.depends.map(jobID => this.getJob(jobID));
+        const payload = resolvePayload(job, dependedJobs);
         // start job
         log.service.info(`Assigning job ${id} (${job.type}) to handler: ${handler.id}`);
         changeJobStatus(job, JOB_STATUS_STARTING);
         job.worker = handler.id;
-        handler.startJob(job);
+        // Take the payload separately, as it has just been resolved:
+        handler.startJob(job, payload);
         return true;
     }
 }
