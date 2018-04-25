@@ -118,5 +118,62 @@ service
 ## Priorities
 Jobs can have a priority in the following range: low/normal/high/critical. The priority can be set by using the `priority` method. `normal` is the default value.
 
+## Events
+You can listen for events on **services** or **jobs**:
+
+```javascript
+service.on("job:completed", job => {
+    console.log("Completed job:", job.id);
+});
+
+service.once("job:failed", job => {
+    console.log("A job failed");
+});
+
+service.on("service:shutdown", handleShutdown);
+
+const job = service
+    .createJob("test")
+    .priority("high");
+job.on("job:started", job => {
+    console.log("Started:", job);
+});
+job.commit();
+```
+
+`job:*` events can be listened to on jobs (from `createJob`) or services. `service:*` events can be listened to on services only.
+
+The following events are available for **jobs**:
+
+ * `job:added`: Fired when a job is added to the service
+ * `job:started`: Fired when a job is started
+ * `job:completed`: Fired when a job is successfully completed
+ * `job:failed`: Fired when a job fails
+ * `job:stopped`: Fired when a job stops running
+
+The following events are available for **services**:
+
+ * `service:shutdown`: Fired when the service shuts down
+ * `service:idle`: Fired when the service becomes idle when there are no more jobs to process (currently)
+
 ## Cluster
-TBC.
+`handlr` supports Node's `cluster` module and can be run on workers:
+
+```javascript
+const cluster = require("cluster");
+const { createService, registerHandler } = require("handlr");
+
+if (cluster.isMaster) {
+    const service = createService();
+    cluster.fork();
+    cluster.fork();
+    service.createJob("test", { a: 1 }).commit();
+} else {
+    registerHandler("test", job => {
+        console.log("Got a job!", JSON.stringify(job, undefined, 2));
+        return { ok: "go" };
+    });
+}
+```
+
+Detection of cluster/normal modes is done automatically.
