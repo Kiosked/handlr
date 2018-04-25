@@ -14,3 +14,11 @@ registerHandler("test:succeed", job => {
         }, 250);
     });
 });
+
+registerHandler("test:fail", job => {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            reject(new Error("failed!"));
+        }, 250);
+    });
+});

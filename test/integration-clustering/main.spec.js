@@ -40,6 +40,32 @@ describe("clustering", function() {
             });
             job.commit();
         });
+
+        it("fires event job:stopped after job:completed", function(done) {
+            const job = this.service.createJob("test:succeed", { abc: 123 });
+            const completed = sinon.spy();
+            const stopped = sinon.spy();
+            job.once("job:completed", completed);
+            job.once("job:stopped", stopped);
+            job.once("job:stopped", () => {
+                setTimeout(() => {
+                    expect(completed.calledBefore(stopped)).to.be.true;
+                    done();
+                }, 200);
+            });
+            job.commit();
+        });
+
+        it("fires event job:failed when a job fails", function(done) {
+            const job = this.service.createJob("test:fail");
+            job.once("job:failed", data => {
+                expect(data).to.have.property("error");
+                expect(data.error).to.have.property("name", "Error");
+                expect(data.error).to.have.property("message", "failed!");
+                done();
+            });
+            job.commit();
+        });
     });
 
     after(function(done) {
