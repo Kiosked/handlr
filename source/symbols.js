@@ -5,6 +5,13 @@ module.exports = Object.freeze({
     COMM_TYPE_CLUSTER: "comm:cluster",
     COMM_TYPE_LOCAL: "comm:local",
 
+    EVENT_JOB_ADDED: "job:added",
+    EVENT_JOB_COMPLETED: "job:completed",
+    EVENT_JOB_FAILED: "job:failed",
+    EVENT_JOB_STARTED: "job:started",
+    EVENT_JOB_STOPPED: "job:stopped",
+    EVENT_SERVICE_SHUTDOWN: "service:shutdown",
+
     JOB_PRIORITY_CRITICAL: -2,
     JOB_PRIORITY_HIGH: -1,
     JOB_PRIORITY_LOW: 1,

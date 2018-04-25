@@ -4,7 +4,7 @@ const isError = require("is-error");
 const serialiseError = require("serialize-error");
 const { getSharedChannel } = require("../MessageChannel.js");
 const log = require("../log.js");
-const { clone } = require("../results.js");
+const { clone } = require("../data.js");
 const { CLUSTER_MESSAGE_PROP } = require("../symbols.js");
 
 class Proxy extends EventEmitter {

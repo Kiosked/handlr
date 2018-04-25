@@ -107,6 +107,12 @@ class NewJob {
 
     commit() {
         const data = this.data;
+        const remoteJob = this._service.getJob(data.id);
+        if (remoteJob) {
+            return Promise.reject(
+                new VError(`Failed committing update: Job already exists: ${data.id}`)
+            );
+        }
         return this._service._addJob(data).then(() => data.id);
     }
 

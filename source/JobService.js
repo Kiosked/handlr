@@ -4,7 +4,14 @@ const { arrowRight } = require("figures");
 const NewJob = require("./NewJob.js");
 const { addGlobalListeners, removeGlobalListeners } = require("./listening.js");
 const { changeJobStatus, markAttempt, resolvePayload, setError, setResult } = require("./job.js");
+const { clone } = require("./data.js");
 const {
+    EVENT_JOB_ADDED,
+    EVENT_JOB_COMPLETED,
+    EVENT_JOB_FAILED,
+    EVENT_JOB_STARTED,
+    EVENT_JOB_STOPPED,
+    EVENT_SERVICE_SHUTDOWN,
     JOB_STATUS_CANCELLED,
     JOB_STATUS_COMPLETED,
     JOB_STATUS_FAILED,
@@ -117,6 +124,9 @@ class JobService extends EventEmitter {
         this._handlers = [];
         clearTimeout(this._tick);
         this._tick = null;
+        this.emit(EVENT_SERVICE_SHUTDOWN, {
+            serverIndex: this.options.serverIndex
+        });
     }
 
     _acceptJob(workerID, jobID) {
@@ -134,6 +144,7 @@ class JobService extends EventEmitter {
         }
         this.jobs.push(job);
         this._sortJobs();
+        this.emit(EVENT_JOB_ADDED, clone(job));
         return Promise.resolve();
     }
 
@@ -155,10 +166,14 @@ class JobService extends EventEmitter {
         if (success) {
             setResult(job, digest.result);
             changeJobStatus(job, JOB_STATUS_COMPLETED);
+            this.emit(EVENT_JOB_COMPLETED, clone(job));
+            this.emit(EVENT_JOB_STOPPED, clone(job));
         } else {
             markAttempt(job);
             changeJobStatus(job, JOB_STATUS_FAILED);
             setError(job, digest.error);
+            this.emit(EVENT_JOB_FAILED, clone(job));
+            this.emit(EVENT_JOB_STOPPED, clone(job));
         }
     }
 
@@ -233,6 +248,7 @@ class JobService extends EventEmitter {
         job.worker = handler.id;
         // Take the payload separately, as it has just been resolved:
         handler.startJob(job, payload);
+        this.emit(EVENT_JOB_STARTED, clone(job));
         return true;
     }
 }
