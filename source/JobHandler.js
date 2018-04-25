@@ -76,7 +76,10 @@ class JobHandler extends EventEmitter {
         this.job = null;
     }
 
-    shutdown() {}
+    shutdown() {
+        this._dispatcher = null;
+        this.removeAllListeners();
+    }
 
     startJob(job, payload) {
         if (this.status !== PROCESSOR_STATUS_IDLE) {

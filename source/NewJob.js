@@ -144,7 +144,7 @@ class NewJob {
         return this;
     }
 
-    on(event, callback, fn = "on") {
+    on(event, callback) {
         if (/^job:/.test(event) !== true) {
             throw new VError(`Failed attaching event handler: Invalid job event type: ${event}`);
         }
@@ -153,7 +153,7 @@ class NewJob {
                 callback(job);
             }
         };
-        this._service[fn](event, internalCB);
+        this._service.on(event, internalCB);
         return {
             remove: () => {
                 this._service.removeListener(event, internalCB);
@@ -162,7 +162,14 @@ class NewJob {
     }
 
     once(event, callback) {
-        return this.on(event, callback, "once");
+        const handleEvent = job => {
+            removeOnCB();
+            callback(job);
+        };
+        const { remove: removeOnCB } = this.on(event, handleEvent);
+        return {
+            remove: removeOnCB
+        };
     }
 
     priority(name) {

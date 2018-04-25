@@ -5,12 +5,14 @@ const NewJob = require("./NewJob.js");
 const { addGlobalListeners, removeGlobalListeners } = require("./listening.js");
 const { changeJobStatus, markAttempt, resolvePayload, setError, setResult } = require("./job.js");
 const { clone } = require("./data.js");
+const { patchConsole } = require("./console.js");
 const {
     EVENT_JOB_ADDED,
     EVENT_JOB_COMPLETED,
     EVENT_JOB_FAILED,
     EVENT_JOB_STARTED,
     EVENT_JOB_STOPPED,
+    EVENT_SERVICE_IDLE,
     EVENT_SERVICE_SHUTDOWN,
     JOB_STATUS_CANCELLED,
     JOB_STATUS_COMPLETED,
@@ -23,8 +25,10 @@ const {
 } = require("./symbols.js");
 const log = require("./log.js");
 
+const ACTIVE_JOB_STATUSES = [JOB_STATUS_IDLE, JOB_STATUS_RUNNING, JOB_STATUS_STARTING];
 const BASE_OPTIONS = {
-    serverIndex: 0
+    serverIndex: 0,
+    wrapConsole: true
 };
 
 function attemptsDelayAllowsExecution(lastAttemptTs, method) {
@@ -61,6 +65,9 @@ class JobService extends EventEmitter {
         this._options = Object.freeze(sanitiseOptions(options));
         this._handlers = [];
         this.__handleJobUpdate = this._handleJobUpdate.bind(this);
+        if (options.wrapConsole) {
+            patchConsole();
+        }
         addGlobalListeners(this);
         this._init();
     }
@@ -119,6 +126,7 @@ class JobService extends EventEmitter {
         log.service.info("Shutting down");
         removeGlobalListeners(this);
         this.handlers.forEach(handler => {
+            handler.shutdown();
             handler.removeListener("jobUpdate", this.__handleJobUpdate);
         });
         this._handlers = [];
@@ -156,6 +164,15 @@ class JobService extends EventEmitter {
         this.handlers.push(handler);
     }
 
+    _checkAllStopped() {
+        const activeJob = this.jobs.find(job => ACTIVE_JOB_STATUSES.indexOf(job.stats) >= 0);
+        if (!activeJob) {
+            this.emit(EVENT_SERVICE_IDLE, {
+                serverIndex: this.options.serverIndex
+            });
+        }
+    }
+
     _getHandler(handlerID) {
         return this.handlers.find(handler => handler.id === handlerID);
     }
@@ -175,6 +192,7 @@ class JobService extends EventEmitter {
             this.emit(EVENT_JOB_FAILED, clone(job));
             this.emit(EVENT_JOB_STOPPED, clone(job));
         }
+        this._checkAllStopped();
     }
 
     _init() {

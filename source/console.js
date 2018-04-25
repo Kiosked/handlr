@@ -20,7 +20,11 @@ function argsToString(args) {
 }
 
 function consoleLog(...items) {
-    __oldConsole.log.apply(console, items);
+    if (__oldConsole) {
+        __oldConsole.log.apply(console, items);
+    } else {
+        console.log(...items);
+    }
 }
 
 function patchConsole() {

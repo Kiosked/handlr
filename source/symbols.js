@@ -10,6 +10,7 @@ module.exports = Object.freeze({
     EVENT_JOB_FAILED: "job:failed",
     EVENT_JOB_STARTED: "job:started",
     EVENT_JOB_STOPPED: "job:stopped",
+    EVENT_SERVICE_IDLE: "service:idle",
     EVENT_SERVICE_SHUTDOWN: "service:shutdown",
 
     JOB_PRIORITY_CRITICAL: -2,
@@ -24,7 +25,7 @@ module.exports = Object.freeze({
     JOB_STATUS_RUNNING: "job:status:running",
     JOB_STATUS_STARTING: "job:status:starting",
 
-    JOB_TICKER_DELAY: 1000,
+    JOB_TICKER_DELAY: 500,
 
     MESSAGE_PREFIX: "handlr:clustermsg:",
 
