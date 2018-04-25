@@ -14,7 +14,7 @@ const {
     MULTI_RESULT_MERGE_PAYLOAD
 } = require("./symbols.js");
 
-const INDENTATION = 4;
+const INDENTATION = 5;
 
 const prettyError = new PrettyError();
 jsome.level.show = true;
