@@ -61,6 +61,7 @@ class NewJob {
         this._attemptsDelay = DefaultAttemptsDelay;
         this._depends = [];
         this._resultAction = MULTI_RESULT_MERGE_DEPENDS;
+        this._id = uuid();
     }
 
     get data() {
@@ -70,7 +71,7 @@ class NewJob {
                 payload: this.payload,
                 type: this.type,
                 priority: this._priority,
-                id: uuid(),
+                id: this.id,
                 status: JOB_STATUS_IDLE,
                 depends: [...this._depends],
                 dependentResultAction: this._resultAction,
@@ -84,6 +85,10 @@ class NewJob {
                 error: null
             }
         );
+    }
+
+    get id() {
+        return this._id;
     }
 
     attempts(num, delay) {
@@ -107,6 +112,12 @@ class NewJob {
 
     commit() {
         const data = this.data;
+        const remoteJob = this._service.getJob(data.id);
+        if (remoteJob) {
+            return Promise.reject(
+                new VError(`Failed committing update: Job already exists: ${data.id}`)
+            );
+        }
         return this._service._addJob(data).then(() => data.id);
     }
 
@@ -131,6 +142,27 @@ class NewJob {
         }
         this._resultAction = action;
         return this;
+    }
+
+    on(event, callback, fn = "on") {
+        if (/^job:/.test(event) !== true) {
+            throw new VError(`Failed attaching event handler: Invalid job event type: ${event}`);
+        }
+        const internalCB = job => {
+            if (job.id === this.id) {
+                callback(job);
+            }
+        };
+        this._service[fn](event, internalCB);
+        return {
+            remove: () => {
+                this._service.removeListener(event, internalCB);
+            }
+        };
+    }
+
+    once(event, callback) {
+        return this.on(event, callback, "once");
     }
 
     priority(name) {

@@ -6,7 +6,7 @@ const prettyMs = require("pretty-ms");
 const log = require("./log.js");
 const { consoleLog } = require("./console.js");
 const { indent } = require("./format.js");
-const { mergePayloads } = require("./results.js");
+const { mergePayloads } = require("./data.js");
 const {
     MULTI_RESULT_DISCARD,
     MULTI_RESULT_FIRST,
@@ -14,7 +14,7 @@ const {
     MULTI_RESULT_MERGE_PAYLOAD
 } = require("./symbols.js");
 
-const INDENTATION = 4;
+const INDENTATION = 5;
 
 const prettyError = new PrettyError();
 jsome.level.show = true;

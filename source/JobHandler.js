@@ -17,6 +17,7 @@ class JobHandler extends EventEmitter {
         this._jobType = jobType;
         this._commType = commType;
         this._id = id;
+        this.clusterWorkerID = null;
         if (!id) {
             throw new VError("Failed constructing JobHandler: Invalid or no ID provided");
         }
@@ -84,7 +85,7 @@ class JobHandler extends EventEmitter {
         log.service.info(`Starting job: ${job.type} (${job.id})`);
         this._status = PROCESSOR_STATUS_ACTIVE;
         setTimeout(() => {
-            this.dispatcher(job, payload, this.id, this.commType);
+            this.dispatcher(job, payload, this.id, this.commType, this.clusterWorkerID);
         }, 0);
     }
 }

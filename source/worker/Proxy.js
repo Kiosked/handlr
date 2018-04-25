@@ -4,7 +4,8 @@ const isError = require("is-error");
 const serialiseError = require("serialize-error");
 const { getSharedChannel } = require("../MessageChannel.js");
 const log = require("../log.js");
-const { clone } = require("../results.js");
+const { clone } = require("../data.js");
+const { CLUSTER_MESSAGE_PROP } = require("../symbols.js");
 
 class Proxy extends EventEmitter {
     constructor(workerID, serverIndex) {
@@ -13,7 +14,7 @@ class Proxy extends EventEmitter {
         this._serverIndex = serverIndex;
         this.__handleNewJob = this._handleNewJob.bind(this);
         if (cluster.isWorker) {
-            // todo
+            process.on("message", this.__handleNewJob);
         } else {
             getSharedChannel().on("job", this.__handleNewJob);
         }
@@ -27,10 +28,18 @@ class Proxy extends EventEmitter {
         return this._workerID;
     }
 
+    sendMessage(data) {
+        const emit = cluster.isWorker
+            ? () => process.send(data)
+            : getSharedChannel().emit("message", data);
+        emit();
+    }
+
     failJob(job, err) {
         log.worker.error(`Job execution failed for job: ${job.id} (${job.type})`);
         log.worker.error(`Job ${job.id} failed with error`, err);
-        getSharedChannel().emit("message", {
+        this.sendMessage({
+            [CLUSTER_MESSAGE_PROP]: true,
             type: "jobFailed",
             serverIndex: this.serverIndex,
             workerID: this.workerID,
@@ -43,7 +52,8 @@ class Proxy extends EventEmitter {
         log.worker.success(`Job was successfully completed: ${job.id} (${job.type})`);
         const result =
             typeof jobResult !== "object" || jobResult === null ? { result: jobResult } : jobResult;
-        getSharedChannel().emit("message", {
+        this.sendMessage({
+            [CLUSTER_MESSAGE_PROP]: true,
             type: "jobCompleted",
             serverIndex: this.serverIndex,
             workerID: this.workerID,
@@ -55,14 +65,15 @@ class Proxy extends EventEmitter {
     shutdown() {
         this._deregister();
         if (cluster.isWorker) {
-            // todo
+            process.removeListener("message", this.__handleNewJob);
         } else {
-            getSharedChannel().removeListener("job", this.__handleMessage);
+            getSharedChannel().removeListener("job", this.__handleNewJob);
         }
     }
 
     _acceptJob(job) {
-        getSharedChannel().emit("message", {
+        this.sendMessage({
+            [CLUSTER_MESSAGE_PROP]: true,
             type: "accept",
             serverIndex: this.serverIndex,
             workerID: this.workerID,
@@ -71,18 +82,19 @@ class Proxy extends EventEmitter {
     }
 
     _deregister() {
-        if (cluster.isWorker) {
-            // todo
-        } else {
-            getSharedChannel().emit("message", {
-                type: "deregister",
-                serverIndex: this.serverIndex,
-                workerID: this.workerID
-            });
-        }
+        this.sendMessage({
+            [CLUSTER_MESSAGE_PROP]: true,
+            type: "deregister",
+            serverIndex: this.serverIndex,
+            workerID: this.workerID
+        });
     }
 
     _handleNewJob(msg) {
+        if (msg && msg[CLUSTER_MESSAGE_PROP] !== true) {
+            // not for us
+            return;
+        }
         if (msg && msg.workerID && msg.workerID === this.workerID) {
             const { job, payload } = msg;
             this._acceptJob(job);
@@ -91,16 +103,13 @@ class Proxy extends EventEmitter {
     }
 
     _register(jobType) {
-        if (cluster.isWorker) {
-            // todo
-        } else {
-            getSharedChannel().emit("message", {
-                type: "register",
-                jobType,
-                serverIndex: this.serverIndex,
-                workerID: this.workerID
-            });
-        }
+        this.sendMessage({
+            [CLUSTER_MESSAGE_PROP]: true,
+            type: "register",
+            jobType,
+            serverIndex: this.serverIndex,
+            workerID: this.workerID
+        });
     }
 }
 

@@ -13,10 +13,8 @@ function registerHandler(jobType, callback, serverIndex = 0) {
                 output
                     .then(result => proxy.resolveJob(job, result))
                     .catch(err => proxy.failJob(job, err));
-            } else if (typeof output === "object") {
-                proxy.resolveJob(job, output);
             } else {
-                throw new Error("Job failed: Invalid output: Expected object or Promise");
+                proxy.resolveJob(job, output);
             }
         } catch (err) {
             proxy.failJob(job, err);
