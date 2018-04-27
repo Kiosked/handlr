@@ -1,6 +1,6 @@
 {
   "name": "handlr",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Job queue and handler for NodeJS",
   "main": "source/index.js",
   "scripts": {
