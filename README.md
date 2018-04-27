@@ -156,6 +156,16 @@ The following events are available for **services**:
  * `service:shutdown`: Fired when the service shuts down
  * `service:idle`: Fired when the service becomes idle when there are no more jobs to process (currently)
 
+## Job progress
+Using the control harness (second parameter) in the job handler method, you can change the progress of a job (see [`ControlHarness`](https://github.com/Kiosked/handlr/blob/master/API.md#controlharness--object)):
+
+```javascript
+registerHandler("test", (data, harness) => {
+    harness.setProgressMax(100);
+    harness.setProgress(1);
+});
+```
+
 ## Cluster
 `handlr` supports Node's `cluster` module and can be run on workers:
 
