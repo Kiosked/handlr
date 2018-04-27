@@ -65,7 +65,22 @@ function sanitiseOptions(ops) {
     return Object.assign({}, BASE_OPTIONS, ops);
 }
 
+/**
+ * Job service options
+ * @typedef {Object} JobServiceOptions
+ * @property {Number} serverIndex - The index of the server, if using multiple
+ * @property {Boolean} wrapConsole - Handle wrapping and formatting of console.log output
+ */
+
+/**
+ * Job service queue
+ * @augments EventEmitter
+ */
 class JobService extends EventEmitter {
+    /**
+     * Constructor for JobService
+     * @param {JobServiceOptions=} options Configuration options for the service
+     */
     constructor(options) {
         super();
         this._jobs = [];
@@ -80,26 +95,60 @@ class JobService extends EventEmitter {
         this._init();
     }
 
+    /**
+     * All handlers attached
+     * @memberof JobService
+     * @type {Array.<JobHandler>}
+     */
     get handlers() {
         return this._handlers;
     }
 
+    /**
+     * All jobs
+     * @memberof JobService
+     * @type {Array.<Job>}
+     */
     get jobs() {
         return this._jobs;
     }
 
+    /**
+     * Service options
+     * @memberof JobService
+     * @type {JobServiceOptions}
+     */
     get options() {
         return this._options;
     }
 
+    /**
+     * Create a new job
+     * Returns a rig to create and save a new job
+     * @param {String} jobType The job type (name)
+     * @param {Object=} payload Optional job data
+     * @memberof JobService
+     * @returns {NewJob} A new job rig for creating and saving a job
+     */
     createJob(jobType, payload) {
         return new NewJob(this, jobType, payload);
     }
 
+    /**
+     * Get a job by its ID
+     * @param {String} jobID The job ID
+     * @returns {Job|null} The job, if found, or null
+     * @memberof JobService
+     */
     getJob(jobID) {
         return this.jobs.find(job => job.id === jobID) || null;
     }
 
+    /**
+     * Get the next job in the queue
+     * @returns {Job|null} The job, if one is found, or null
+     * @memberof JobService
+     */
     getNextJob() {
         const nextJob = this.jobs.find(job => {
             let matching = false;
@@ -130,6 +179,11 @@ class JobService extends EventEmitter {
         return nextJob || null;
     }
 
+    /**
+     * Shutdown the service
+     * @memberof JobService
+     * @fires JobService#serviceShutdown
+     */
     shutdown() {
         log.service.info("Shutting down");
         removeGlobalListeners(this);

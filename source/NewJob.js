@@ -48,7 +48,39 @@ const ResultAction = {
     mergePayload: MULTI_RESULT_MERGE_PAYLOAD
 };
 
+/**
+ * A job
+ * @typedef {Object} Job
+ * @property {Number} attempts - The number of attempts the job has left to be retried (1 = 1 attempt left)
+ * @property {Number|Function} attemptsDelay - The delay before retrying. A number (ms before retry) or a function that returns
+ *  true when a retry is possible.
+ * @property {Array.<String>} depends - An array of Job IDs that this job depends on
+ * @property {String} dependentResultAction - Action to take when resolving results of depended-upon jobs
+ * @property {Object} error - The last error to occur when processing this job
+ * @property {String} id - The job ID
+ * @property {Number|null} lastAttempt - The timestamp of the last attempt or null if there was none
+ * @property {Object} payload - The job data/payload, provided by `createJob`
+ * @property {String} priority - The job priority
+ * @property {Number} progress - The current job progress
+ * @property {Number} progressMax - The maximum job progress
+ * @property {Object|null} result - The job result or null if it has not run yet
+ * @property {String} status - The current job status
+ * @property {String} type - The job type
+ * @property {String|null} worker - The worker ID or null if not assigned
+ */
+
+/**
+ * Rig for creating a new job
+ */
 class NewJob {
+    /**
+     * Constructor for the rig
+     * @param {JobService} service Reference to the job service
+     * @param {String} type The job type
+     * @param {Object=} payload The job payload
+     * @throws {Error} Throws if the payload is not an object
+     * @memberof NewJob
+     */
     constructor(service, type, payload = {}) {
         if (typeof payload !== "object" || payload === null) {
             throw new Error("Job payload must be an object");
@@ -64,6 +96,11 @@ class NewJob {
         this._id = uuid();
     }
 
+    /**
+     * The raw job data
+     * @type {Job}
+     * @memberof NewJob
+     */
     get data() {
         return Object.assign(
             {},
@@ -87,10 +124,25 @@ class NewJob {
         );
     }
 
+    /**
+     * The job ID
+     * @type {String}
+     * @memberof NewJob
+     */
     get id() {
         return this._id;
     }
 
+    /**
+     * Set the number of attempts and delay between them
+     * @param {Number} num The number of attempts
+     * @param {String|Number|Function=} delay The delay: Can be a string representation of a time (eg. "5s") (see "ms" npm package),
+     *  a number (milliseconds) or a function that returns true when a new attempt can be made.
+     * @memberof NewJob
+     * @throws {VError} Throws when the delay property type is invalid
+     * @throws {VError} Throws if the number of attempts is less than 0
+     * @returns {NewJob} Self
+     */
     attempts(num, delay) {
         if (num >= 0) {
             this._attempts = num;
@@ -110,6 +162,11 @@ class NewJob {
         throw new VError(`Failed setting job attempts: Invalid attempts count: ${num}`);
     }
 
+    /**
+     * Commit the job and send it to the service
+     * @returns {Promise.<String>} A promise that resolves with the job ID
+     * @memberof NewJob
+     */
     commit() {
         const data = this.data;
         const remoteJob = this._service.getJob(data.id);
@@ -144,6 +201,14 @@ class NewJob {
         return this;
     }
 
+    /**
+     * Attach an event listener for this job
+     * @param {String} event The job-specific event name
+     * @param {Function} callback The callback to call when the event fires
+     * @returns {{ remove: Function }} An object with a method for removing the listener
+     * @memberof NewJob
+     * @throws {VError} Throws if the event type is not related to jobs
+     */
     on(event, callback) {
         if (/^job:/.test(event) !== true) {
             throw new VError(`Failed attaching event handler: Invalid job event type: ${event}`);
@@ -161,6 +226,14 @@ class NewJob {
         };
     }
 
+    /**
+     * Attach a one-time event listener for this job
+     * @param {String} event The event name
+     * @param {Function} callback The callback
+     * @returns {Object} Listener controls
+     * @see NewJob#on
+     * @memberof NewJob
+     */
     once(event, callback) {
         const handleEvent = job => {
             removeOnCB();
@@ -172,6 +245,12 @@ class NewJob {
         };
     }
 
+    /**
+     * Set the job priority
+     * @param {String} name The priority level name
+     * @returns {NewJob} Self
+     * @memberof NewJob
+     */
     priority(name) {
         const prio = Priority[name];
         if (!prio) {
