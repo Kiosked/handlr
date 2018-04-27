@@ -71,6 +71,18 @@ class Proxy extends EventEmitter {
         }
     }
 
+    updateProgress(job, progress, max) {
+        this.sendMessage({
+            [CLUSTER_MESSAGE_PROP]: true,
+            type: "jobProgress",
+            serverIndex: this.serverIndex,
+            workerID: this.workerID,
+            jobID: job.id,
+            progress,
+            progressMax: max
+        });
+    }
+
     _acceptJob(job) {
         this.sendMessage({
             [CLUSTER_MESSAGE_PROP]: true,

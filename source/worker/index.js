@@ -2,6 +2,7 @@ const cluster = require("cluster");
 const uuid = require("uuid/v4");
 const Proxy = require("./Proxy.js");
 const { patchConsole } = require("../console.js");
+const { generateJobControlHarness } = require("./controls.js");
 
 if (cluster.isWorker) {
     patchConsole();
@@ -11,7 +12,8 @@ function registerHandler(jobType, callback, serverIndex = 0) {
     const proxy = new Proxy(uuid(), serverIndex);
     proxy.on("job", (job, payload) => {
         try {
-            const output = callback(payload);
+            const harness = generateJobControlHarness(proxy, job);
+            const output = callback(payload, harness);
             if (output && typeof output.then === "function") {
                 output
                     .then(result => proxy.resolveJob(job, result))

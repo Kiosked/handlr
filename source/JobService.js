@@ -3,13 +3,21 @@ const EventEmitter = require("eventemitter3");
 const { arrowRight } = require("figures");
 const NewJob = require("./NewJob.js");
 const { addGlobalListeners, removeGlobalListeners } = require("./listening.js");
-const { changeJobStatus, markAttempt, resolvePayload, setError, setResult } = require("./job.js");
+const {
+    changeJobStatus,
+    markAttempt,
+    resolvePayload,
+    setError,
+    setProgress,
+    setResult
+} = require("./job.js");
 const { clone } = require("./data.js");
 const { patchConsole } = require("./console.js");
 const {
     EVENT_JOB_ADDED,
     EVENT_JOB_COMPLETED,
     EVENT_JOB_FAILED,
+    EVENT_JOB_PROGRESS,
     EVENT_JOB_STARTED,
     EVENT_JOB_STOPPED,
     EVENT_SERVICE_IDLE,
@@ -65,7 +73,7 @@ class JobService extends EventEmitter {
         this._options = Object.freeze(sanitiseOptions(options));
         this._handlers = [];
         this.__handleJobUpdate = this._handleJobUpdate.bind(this);
-        if (options.wrapConsole) {
+        if (this._options.wrapConsole) {
             patchConsole();
         }
         addGlobalListeners(this);
@@ -178,21 +186,28 @@ class JobService extends EventEmitter {
     }
 
     _handleJobUpdate(digest) {
-        const { jobID, success } = digest;
+        const { jobID, type } = digest;
         const job = this.getJob(jobID);
-        if (success) {
-            setResult(job, digest.result);
-            changeJobStatus(job, JOB_STATUS_COMPLETED);
-            this.emit(EVENT_JOB_COMPLETED, clone(job));
-            this.emit(EVENT_JOB_STOPPED, clone(job));
-        } else {
-            markAttempt(job);
-            changeJobStatus(job, JOB_STATUS_FAILED);
-            setError(job, digest.error);
-            this.emit(EVENT_JOB_FAILED, clone(job));
-            this.emit(EVENT_JOB_STOPPED, clone(job));
+        if (type === "resolution") {
+            const { success } = digest;
+            if (success) {
+                setResult(job, digest.result);
+                changeJobStatus(job, JOB_STATUS_COMPLETED);
+                this.emit(EVENT_JOB_COMPLETED, clone(job));
+                this.emit(EVENT_JOB_STOPPED, clone(job));
+            } else {
+                markAttempt(job);
+                changeJobStatus(job, JOB_STATUS_FAILED);
+                setError(job, digest.error);
+                this.emit(EVENT_JOB_FAILED, clone(job));
+                this.emit(EVENT_JOB_STOPPED, clone(job));
+            }
+            this._checkAllStopped();
+        } else if (type === "progress") {
+            const { progress, progressMax } = digest;
+            setProgress(job, progress, progressMax);
+            this.emit(EVENT_JOB_PROGRESS, clone(job));
         }
-        this._checkAllStopped();
     }
 
     _init() {

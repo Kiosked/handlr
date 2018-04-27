@@ -8,6 +8,7 @@ module.exports = Object.freeze({
     EVENT_JOB_ADDED: "job:added",
     EVENT_JOB_COMPLETED: "job:completed",
     EVENT_JOB_FAILED: "job:failed",
+    EVENT_JOB_PROGRESS: "job:progress",
     EVENT_JOB_STARTED: "job:started",
     EVENT_JOB_STOPPED: "job:stopped",
     EVENT_SERVICE_IDLE: "service:idle",

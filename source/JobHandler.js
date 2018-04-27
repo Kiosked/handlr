@@ -59,6 +59,7 @@ class JobHandler extends EventEmitter {
     completeJob(jobID, result) {
         this.emit("jobUpdate", {
             jobID,
+            type: "resolution",
             success: true,
             result
         });
@@ -69,6 +70,7 @@ class JobHandler extends EventEmitter {
     failJob(jobID, error) {
         this.emit("jobUpdate", {
             jobID,
+            type: "resolution",
             success: false,
             error
         });
@@ -90,6 +92,15 @@ class JobHandler extends EventEmitter {
         setTimeout(() => {
             this.dispatcher(job, payload, this.id, this.commType, this.clusterWorkerID);
         }, 0);
+    }
+
+    updateJobProgress(jobID, progress, progressMax) {
+        this.emit("jobUpdate", {
+            jobID,
+            type: "progress",
+            progress,
+            progressMax
+        });
     }
 }
 

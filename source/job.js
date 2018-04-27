@@ -86,6 +86,22 @@ function setError(job, error) {
     job.error = error;
 }
 
+function setProgress(job, current, max) {
+    job.progress = current;
+    job.progressMax = max;
+    let percentComplete;
+    try {
+        percentComplete = (current / max * 100).toFixed(2);
+    } catch (err) {
+        percentComplete = "-";
+    }
+    log.service.info(
+        `Job progress update for ${job.id}: ${chalk.bold(current)} / ${chalk.bold(
+            max
+        )} (${chalk.yellow(percentComplete)}%)`
+    );
+}
+
 function setResult(job, result) {
     log.service.info(`Recording result for job ${job.id}:`);
     try {
@@ -101,5 +117,6 @@ module.exports = {
     markAttempt,
     resolvePayload,
     setError,
+    setProgress,
     setResult
 };

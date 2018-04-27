@@ -86,6 +86,17 @@ function addGlobalListeners(service) {
                     handler.failJob(jobID, error);
                     break;
                 }
+                case "jobProgress": {
+                    const { workerID, jobID, progress, progressMax } = message;
+                    assert(workerID.length > 0, "Worker ID must be provided");
+                    assert(jobID.length > 0, "Job ID type must be provided");
+                    assert(typeof progress === "number", "Progress must be a number");
+                    assert(typeof progressMax === "number", "Progress maximum must be a number");
+                    const handler = service._getHandler(workerID);
+                    assert(handler, "Job handler for failed job must be registered");
+                    handler.updateJobProgress(jobID, progress, progressMax);
+                    break;
+                }
                 default:
                     throw new Error(`Failed handling message: Unknown type: ${message.type}`);
             }
