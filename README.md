@@ -150,6 +150,7 @@ The following events are available for **jobs**:
  * `job:completed`: Fired when a job is successfully completed
  * `job:failed`: Fired when a job fails
  * `job:stopped`: Fired when a job stops running
+ * `job:progress`: Fired when job progress changes
 
 The following events are available for **services**:
 
