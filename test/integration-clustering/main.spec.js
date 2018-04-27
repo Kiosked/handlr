@@ -66,6 +66,21 @@ describe("clustering", function() {
             });
             job.commit();
         });
+
+        it("fires event job:failed when a job fails", function(done) {
+            const job = this.service.createJob("test:progress");
+            const progressSpy = sinon.spy();
+            job.on("job:progress", job => progressSpy(job.progress, job.progressMax));
+            job.once("job:completed", () => {
+                expect(progressSpy.callCount).to.equal(4);
+                expect(progressSpy.getCall(0).args).to.deep.equal([0, 20]);
+                expect(progressSpy.getCall(1).args).to.deep.equal([5, 20]);
+                expect(progressSpy.getCall(2).args).to.deep.equal([5, 6]);
+                expect(progressSpy.getCall(3).args).to.deep.equal([6, 6]);
+                done();
+            });
+            job.commit();
+        });
     });
 
     after(function(done) {
