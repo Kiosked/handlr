@@ -21,6 +21,8 @@ const {
     EVENT_JOB_STARTED,
     EVENT_JOB_STOPPED,
     EVENT_SERVICE_IDLE,
+    EVENT_SERVICE_PERSISTENCE_READ,
+    EVENT_SERVICE_PERSISTENCE_WRITTEN,
     EVENT_SERVICE_SHUTDOWN,
     JOB_STATUS_CANCELLED,
     JOB_STATUS_COMPLETED,
@@ -35,6 +37,7 @@ const log = require("./log.js");
 
 const ACTIVE_JOB_STATUSES = [JOB_STATUS_IDLE, JOB_STATUS_RUNNING, JOB_STATUS_STARTING];
 const BASE_OPTIONS = {
+    persistence: null,
     serverIndex: 0,
     wrapConsole: true
 };
@@ -123,6 +126,17 @@ class JobService extends EventEmitter {
     }
 
     /**
+     * Information regarding the service
+     * @type {Object}
+     * @memberof JobService
+     */
+    get serviceInformation() {
+        return {
+            serverIndex: this.options.serverIndex
+        };
+    }
+
+    /**
      * Create a new job
      * Returns a rig to create and save a new job
      * @param {String} jobType The job type (name)
@@ -194,9 +208,7 @@ class JobService extends EventEmitter {
         this._handlers = [];
         clearTimeout(this._tick);
         this._tick = null;
-        this.emit(EVENT_SERVICE_SHUTDOWN, {
-            serverIndex: this.options.serverIndex
-        });
+        this.emit(EVENT_SERVICE_SHUTDOWN, this.serviceInformation);
     }
 
     _acceptJob(workerID, jobID) {
@@ -229,9 +241,7 @@ class JobService extends EventEmitter {
     _checkAllStopped() {
         const activeJob = this.jobs.find(job => ACTIVE_JOB_STATUSES.indexOf(job.stats) >= 0);
         if (!activeJob) {
-            this.emit(EVENT_SERVICE_IDLE, {
-                serverIndex: this.options.serverIndex
-            });
+            this.emit(EVENT_SERVICE_IDLE, this.serviceInformation);
         }
     }
 
@@ -282,6 +292,34 @@ class JobService extends EventEmitter {
             }, JOB_TICKER_DELAY);
         };
         startTicker();
+        return this._readPersistedJobs();
+    }
+
+    _persistJobs() {
+        const { persistence } = this.options;
+        if (!persistence) {
+            return Promise.resolve();
+        }
+        log.service.info("Starting job-persistence");
+        return persistence.persist(this.jobs).then(() => {
+            log.service.info("Job-persistence completed");
+            this.emit(EVENT_SERVICE_PERSISTENCE_WRITTEN, this.serviceInformation);
+        });
+    }
+
+    _readPersistedJobs() {
+        const { persistence } = this.options;
+        if (!persistence) {
+            return Promise.resolve();
+        }
+        log.service.info("Starting reading of persisted jobs");
+        return persistence.read().then(jobs => {
+            log.service.info("Reading of persisted jobs complete");
+            log.service.info(`Read ${jobs.length} jobs from storage`);
+            this._jobs.push(...jobs);
+            this._sortJobs();
+            this.emit(EVENT_SERVICE_PERSISTENCE_READ, this.serviceInformation);
+        });
     }
 
     _removeHandler(workerID) {

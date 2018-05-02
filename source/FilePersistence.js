@@ -1,6 +1,11 @@
+const fs = require("fs");
 const writeFileAtomic = require("write-file-atomic");
+const fileExistsCB = require("file-exists");
 const VError = require("verror");
 const Persistence = require("./Persistence.js");
+
+const fileExists = pify(fileExistsCB);
+const readFile = pify(fs.readFile);
 
 class FilePersistence extends Persistence {
     constructor(filename, encryptionKey) {
@@ -12,18 +17,20 @@ class FilePersistence extends Persistence {
     persist(jobs) {
         super
             .persist(jobs)
-            .then(
-                payload =>
-                    new Promise((resolve, reject) => {
-                        writeFileAtomic(this.filename, payload, err => {
-                            if (err) {
-                                return reject(
-                                    new VError(err, `Failed writing file: ${this.filename}`)
-                                );
-                            }
-                            return resolve();
-                        });
-                    })
+            .then(payload =>
+                this.workChannel.enqueue(
+                    () =>
+                        new Promise((resolve, reject) => {
+                            writeFileAtomic(this.filename, payload, err => {
+                                if (err) {
+                                    return reject(
+                                        new VError(err, `Failed writing file: ${this.filename}`)
+                                    );
+                                }
+                                return resolve();
+                            });
+                        })
+                )
             )
             .catch(err => {
                 throw new VError(
@@ -31,6 +38,16 @@ class FilePersistence extends Persistence {
                     "Failed persisting jobs to file"
                 );
             });
+    }
+
+    read() {
+        return this.workChannel
+            .enqueue(() =>
+                fileExists(this.filename).then(
+                    exists => (exists ? readFile(this.filename, "utf8") : null)
+                )
+            )
+            .then(data => (data === null ? [] : super.read(data)));
     }
 }
 

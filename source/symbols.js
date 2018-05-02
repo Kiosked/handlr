@@ -12,6 +12,8 @@ module.exports = Object.freeze({
     EVENT_JOB_STARTED: "job:started",
     EVENT_JOB_STOPPED: "job:stopped",
     EVENT_SERVICE_IDLE: "service:idle",
+    EVENT_SERVICE_PERSISTENCE_READ: "service:persistence:read",
+    EVENT_SERVICE_PERSISTENCE_WRITTEN: "service:persistence:write",
     EVENT_SERVICE_SHUTDOWN: "service:shutdown",
 
     JOB_PRIORITY_CRITICAL: -2,

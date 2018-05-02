@@ -30,6 +30,19 @@ class Persistence {
                 })
         );
     }
+
+    read(jobStr) {
+        return this.workChannel.enqueue(() =>
+            Promise.resolve(jobStr)
+                .then(data => {
+                    if (this._encryptionKey) {
+                        return createSession().decrypt(data, this._encryptionKey);
+                    }
+                    return data;
+                })
+                .then(JSON.parse)
+        );
+    }
 }
 
 module.exports = Persistence;
