@@ -7,11 +7,13 @@
     "docs": "jsdoc2md source/**/*.js > API.md",
     "format": "prettier --write '{source,test}/**/*.js'",
     "precommit": "lint-staged",
-    "test": "run-s test:integration test:format",
+    "test": "run-s test:unit test:integration test:format",
     "test:format": "prettier-check '{source,test}/**/*.js'",
     "test:integration": "run-s test:integration:clustering",
     "test:integration:clustering": "mocha --timeout 10000 -r test/bootstrap.js 'test/integration-clustering/**/*.spec.js'",
-    "test:integration:watch": "nodemon --exec 'npm run test:integration'"
+    "test:integration:watch": "nodemon --exec 'npm run test:integration'",
+    "test:unit": "mocha -r test/bootstrap.js 'test/unit/**/*.spec.js'",
+    "test:unit:watch": "nodemon --exec 'npm run test:unit'"
   },
   "lint-staged": {
     "{source,test}/**/*.js": [
