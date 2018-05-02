@@ -2,6 +2,7 @@ const fs = require("fs");
 const writeFileAtomic = require("write-file-atomic");
 const fileExistsCB = require("file-exists");
 const VError = require("verror");
+const pify = require("pify");
 const Persistence = require("./Persistence.js");
 
 const fileExists = pify(fileExistsCB);
