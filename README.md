@@ -3,6 +3,9 @@
 
 [![Build Status](https://travis-ci.org/Kiosked/handlr.svg?branch=master)](https://travis-ci.org/Kiosked/handlr)
 
+## DEPRECATED
+This project is no longer being maintained.
+
 ## About
 Handlr is a toolkit for creating simple job queue processing services, and provides easy methods to start a service and register workers.
 
